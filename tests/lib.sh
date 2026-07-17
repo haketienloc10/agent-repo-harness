@@ -71,7 +71,6 @@ configure_harness() {
       "$file"
   done < <(find "$target" -type f \( -name '*.md' -o -name 'AGENTS.md' \) -not -path '*/.git/*')
 
-  sed -i '1{/^\[English Version/d;}' "$target/index.md"
   mkdir -p -- "$target/docs/exec-plans/active"
   printf '%s\n' \
     '# Verify legacy fixture' \
