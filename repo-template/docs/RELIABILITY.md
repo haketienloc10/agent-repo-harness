@@ -8,6 +8,7 @@ Tệp này định nghĩa cách hệ thống chứng minh nó khỏe mạnh và 
 - Xác minh: `{{VERIFY_COMMAND}}`
 - Khởi động app hoặc service: `{{START_COMMAND}}`
 - Debug hoặc kiểm tra runtime: `{{DEBUG_COMMAND}}`
+- Mechanical guardrail: `{{MECHANICAL_GUARDRAIL}}`
 
 Kết quả tại thời điểm tiếp quản được ghi trong `PROJECT_BASELINE.md`. Command ở đây là đường dẫn chuẩn hiện tại; khi thay đổi command, cập nhật tài liệu và kế hoạch liên quan mà không viết lại bằng chứng lịch sử của baseline.
 

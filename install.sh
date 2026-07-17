@@ -272,7 +272,7 @@ else
 fi
 printf '2. Read docs/HARNESS_SETUP.md.\n'
 printf '3. Establish docs/PROJECT_BASELINE.md at the current Git revision.\n'
-printf '4. Run ./scripts/harness-check.sh after the checker is available.\n'
+printf '4. Run ./scripts/harness-check.sh.\n'
 
 if ((conflict_count > 0)); then
   exit 2
