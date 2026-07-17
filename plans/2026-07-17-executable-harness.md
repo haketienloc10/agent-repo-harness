@@ -26,7 +26,7 @@ Biến repo này từ một bộ template tài liệu thành một harness tối
 | Task | Nội dung | Trạng thái |
 |---|---|---|
 | 1 | Chuẩn hóa takeover policy và template | Completed |
-| 2 | Xây dựng installer an toàn | Pending |
+| 2 | Xây dựng installer an toàn | Completed |
 | 3 | Xây dựng harness checker | Pending |
 | 4 | Fixture, test end-to-end và tài liệu sử dụng | Pending |
 
