@@ -25,7 +25,7 @@ Biến repo này từ một bộ template tài liệu thành một harness tối
 
 | Task | Nội dung | Trạng thái |
 |---|---|---|
-| 1 | Chuẩn hóa takeover policy và template | Pending |
+| 1 | Chuẩn hóa takeover policy và template | Completed |
 | 2 | Xây dựng installer an toàn | Pending |
 | 3 | Xây dựng harness checker | Pending |
 | 4 | Fixture, test end-to-end và tài liệu sử dụng | Pending |
@@ -272,6 +272,7 @@ Khi bắt đầu một task:
 | Ngày | Task | Kết quả | Bằng chứng / Ghi chú |
 |---|---|---|---|
 | 2026-07-17 | Planning | Completed | Chia phạm vi thành bốn task có thể kiểm chứng độc lập. |
+| 2026-07-17 | Task 1 | Completed | Ba command `rg` bắt buộc đã chạy: placeholder và tham chiếu trả exit `0`; quy tắc `sửa baseline trước` không còn match, trả exit `1` như kỳ vọng. Review thủ công xác nhận legacy issue tại baseline, regression phải sửa, observation chưa rõ nằm trong active plan và issue đã sửa giữ lại với `Resolved`. Assertion bổ sung cho trường bắt buộc, placeholder cũ, trailing whitespace và `git diff --check` đều pass. |
 
 ## Definition of Done toàn kế hoạch
 

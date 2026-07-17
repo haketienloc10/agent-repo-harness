@@ -6,21 +6,21 @@ Mô tả trải nghiệm lần chạy đầu tiên mà người dùng mới nên
 
 ## Điều kiện Đầu vào
 
-- `[trạng thái trước khi luồng bắt đầu]`
+- `{{ONBOARDING_PRECONDITION}}`
 
 ## Luồng Người dùng
 
-1. `[bước một]`
-2. `[bước hai]`
-3. `[bước ba]`
+1. `{{ONBOARDING_STEP_1}}`
+2. `{{ONBOARDING_STEP_2}}`
+3. `{{ONBOARDING_STEP_3}}`
 
 ## Tiêu chí Chấp nhận
 
-- `[kết quả có thể quan sát]`
-- `[kết quả có thể quan sát]`
-- `[kết quả có thể quan sát]`
+- `{{ONBOARDING_ACCEPTANCE_RESULT_1}}`
+- `{{ONBOARDING_ACCEPTANCE_RESULT_2}}`
+- `{{ONBOARDING_ACCEPTANCE_RESULT_3}}`
 
 ## Trạng thái Lỗi
 
-- `[lỗi có thể phục hồi và phản hồi người dùng]`
-- `[trạng thái bị chặn và phương án dự phòng]`
+- `{{ONBOARDING_RECOVERABLE_ERROR}}`
+- `{{ONBOARDING_BLOCKED_FALLBACK}}`

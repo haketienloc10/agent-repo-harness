@@ -8,11 +8,11 @@ Sử dụng chỉ mục này như bản đồ có thể khám phá của lịch 
 
 ## Đề xuất
 
-- `[thêm đường dẫn tài liệu thiết kế mới ở đây]`
+_Chưa có._
 
 ## Không còn Dùng
 
-- `[di chuyển các tài liệu thiết kế cũ hoặc đã bị thay thế ở đây với các liên kết thay thế]`
+_Chưa có._
 
 ## Quy tắc Bảo trì
 

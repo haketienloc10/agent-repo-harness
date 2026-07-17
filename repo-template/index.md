@@ -6,9 +6,10 @@ Sao chép starter này vào một kho lưu trữ thực khi bạn muốn một b
 
 1. Sao chép `AGENTS.md` và `ARCHITECTURE.md` vào thư mục gốc repo.
 2. Sao chép toàn bộ cây `docs/`.
-3. Điền vào `docs/PRODUCT_SENSE.md`, `docs/QUALITY_SCORE.md`, và `docs/RELIABILITY.md` trước tiên.
-4. Thêm kế hoạch active đầu tiên của bạn trong `docs/exec-plans/active/`.
-5. Giữ các tệp đầu vào ngắn và định tuyến chi tiết vào các tài liệu được liên kết.
+3. Đọc `docs/HARNESS_SETUP.md` và ghi `docs/PROJECT_BASELINE.md` trước khi phân loại failure.
+4. Điền `docs/LEGACY_ISSUES.md`, `docs/PRODUCT_SENSE.md`, `docs/QUALITY_SCORE.md` và `docs/RELIABILITY.md` từ bằng chứng khảo sát.
+5. Thêm kế hoạch active đầu tiên trong `docs/exec-plans/active/`.
+6. Giữ các tệp đầu vào ngắn và định tuyến chi tiết vào các tài liệu được liên kết.
 
 ## Mẫu Này Tối ưu hóa Cho
 

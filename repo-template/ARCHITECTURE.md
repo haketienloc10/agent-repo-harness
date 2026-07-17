@@ -4,17 +4,17 @@ Tệp này là bản đồ cấp cao nhất của hệ thống. Nó nên ngắn 
 
 ## Hình dạng Hệ thống
 
-- Sản phẩm: `[thay thế bằng tên sản phẩm]`
-- Workflow người dùng chính: `[thay thế bằng workflow chính]`
-- Bề mặt runtime: `[desktop / web / cli / services / workers]`
+- Sản phẩm: `{{PRODUCT_NAME}}`
+- Workflow người dùng chính: `{{PRIMARY_USER_WORKFLOW}}`
+- Bề mặt runtime: `{{RUNTIME_SURFACES}}`
 - Nguồn sự thật cho hành vi sản phẩm: `docs/product-specs/`
 
 ## Bản đồ Domain
 
 | Domain | Mục đích | Điểm đầu vào chính | Spec liên quan |
 |--------|---------|----------------------|----------------|
-| `[domain-a]` | `[những gì nó sở hữu]` | `[modules / routes / commands]` | `[đường dẫn spec]` |
-| `[domain-b]` | `[những gì nó sở hữu]` | `[modules / routes / commands]` | `[đường dẫn spec]` |
+| `{{DOMAIN_1_NAME}}` | `{{DOMAIN_1_OWNERSHIP}}` | `{{DOMAIN_1_ENTRY_POINTS}}` | `{{DOMAIN_1_SPEC_PATH}}` |
+| `{{DOMAIN_2_NAME}}` | `{{DOMAIN_2_OWNERSHIP}}` | `{{DOMAIN_2_ENTRY_POINTS}}` | `{{DOMAIN_2_SPEC_PATH}}` |
 
 ## Mô hình Lớp
 
@@ -36,15 +36,15 @@ Các mối quan tâm xuyên suốt nên đi vào qua các ranh giới provider h
 
 | Mối quan tâm | Ranh giới được phê duyệt | Ghi chú |
 |--------|-------------------|---------|
-| Logging và tracing | `[đường dẫn provider / utility]` | `[chỉ có cấu trúc, không sử dụng console ad hoc]` |
-| Auth | `[đường dẫn provider]` | `[quy tắc token/session]` |
-| External API | `[đường dẫn client hoặc provider]` | `[hướng dẫn rate limit / retry]` |
-| Feature flags | `[ranh giới flag]` | `[quyền sở hữu]` |
+| Logging và tracing | `{{LOGGING_BOUNDARY}}` | `{{LOGGING_RULES}}` |
+| Auth | `{{AUTH_BOUNDARY}}` | `{{AUTH_RULES}}` |
+| External API | `{{EXTERNAL_API_BOUNDARY}}` | `{{EXTERNAL_API_RULES}}` |
+| Feature flags | `{{FEATURE_FLAG_BOUNDARY}}` | `{{FEATURE_FLAG_OWNERSHIP}}` |
 
 ## Điểm Nóng Hiện tại
 
-- `[khu vực khó thay đổi an toàn nhất cho agent]`
-- `[khu vực có ranh giới yếu hoặc test dễ vỡ]`
+- `{{CHANGE_SAFETY_HOTSPOT}}`
+- `{{WEAK_BOUNDARY_OR_FLAKY_TEST_AREA}}`
 
 ## Danh sách Kiểm tra Thay đổi
 

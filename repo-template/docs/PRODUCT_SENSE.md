@@ -4,10 +4,10 @@ Tệp này ghi lại phán xét sản phẩm lâu bền mà agent không thể s
 
 ## Cốt lõi Sản phẩm
 
-- Người dùng chính: `[thay thế]`
-- Công việc cần hoàn thành: `[thay thế]`
-- Sự thất vọng chính cần loại bỏ: `[thay thế]`
-- Tiêu chuẩn chất lượng để chấp nhận: `[thay thế]`
+- Người dùng chính: `{{PRIMARY_USER}}`
+- Công việc cần hoàn thành: `{{JOB_TO_BE_DONE}}`
+- Sự thất vọng chính cần loại bỏ: `{{PRIMARY_FRUSTRATION}}`
+- Tiêu chuẩn chất lượng để chấp nhận: `{{ACCEPTANCE_QUALITY_BAR}}`
 
 ## Quy tắc Sản phẩm
 
