@@ -1,5 +1,3 @@
-[English Version →](../../../../en/resources/openai-advanced/sops/) | [中文版本 →](../../../../zh/resources/openai-advanced/sops/)
-
 # Thư viện SOP
 
 Các quy trình vận hành chuẩn từng bước để thiết lập và vận hành harness.

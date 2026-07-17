@@ -1,5 +1,3 @@
-[English Version →](../../../en/resources/openai-advanced/) | [中文版本 →](../../../zh/resources/openai-advanced/)
-
 # Gói Harness Nâng cao OpenAI
 
 Gói này tập hợp thiết kế harness được mô tả trong bài viết "Harness Engineering" của OpenAI thành một bộ tệp bắt đầu có thể áp dụng và cấu trúc SOP đi kèm.
@@ -46,13 +44,63 @@ docs/
 └── SECURITY.md
 ```
 
-## Cách Áp dụng Nó
+## Cài đặt an toàn
 
-1. Bắt đầu từ gói tối giản nếu repo của bạn vẫn còn nhỏ.
-2. Sao chép các tệp trong [`repo-template/`](./repo-template/index.md) vào kho lưu trữ của bạn khi bạn cần cấu trúc mạnh hơn.
-3. Giữ `AGENTS.md` ngắn. Coi nó như bộ định tuyến vào các tài liệu sâu hơn, không phải như bách khoa toàn thư.
-4. Cập nhật các tài liệu chất lượng, độ tin cậy và kế hoạch như một phần của công việc thông thường, không phải như một ngày dọn dẹp riêng biệt.
-5. Giữ các artifact được tạo ra và tài liệu tham khảo bên ngoài rõ ràng để agent có thể tìm thấy chúng mà không cần dựa vào lịch sử chat.
+Repo đích phải là root của một Git repository đã tồn tại. Installer chỉ sao chép
+các file harness; nó không chạy build, test, lint, migration hoặc source code dự án.
+
+```bash
+./install.sh --target /path/to/repo --dry-run
+./install.sh --target /path/to/repo
+```
+
+File hiện hữu được báo là `Conflicts` và giữ nguyên theo mặc định. Chỉ dùng
+`--overwrite` sau khi review conflict; installer sẽ tạo bản sao dưới
+`.harness/backups/` trước khi thay file.
+
+## Takeover workflow
+
+Sau khi cài:
+
+1. Xử lý mọi `Conflicts`, rồi đọc `docs/HARNESS_SETUP.md` trong repo đích.
+2. Ghi revision bằng `git rev-parse HEAD` trước khi chạy command khảo sát.
+3. Khảo sát read-only, xác định bootstrap, verify, start command và mechanical guardrail.
+4. Chạy các command an toàn đã chọn và điền kết quả thực tế vào `docs/PROJECT_BASELINE.md`.
+5. Chỉ ghi failure được chứng minh tại đúng baseline revision vào `docs/LEGACY_ISSUES.md`.
+6. Tạo ít nhất một kế hoạch trong `docs/exec-plans/active/` và chạy checker.
+
+```bash
+cd /path/to/repo
+./scripts/harness-check.sh
+```
+
+Checker trả exit `0` khi cấu hình harness không có `FAIL`. Một legacy issue hợp lệ
+được báo `BASELINE`, nên failure sẵn có không làm checker fail. Checker không chạy
+command dự án.
+
+## Baseline và phân loại failure
+
+- **Legacy issue**: failure có reproduction và evidence tại đúng baseline revision;
+  giữ trong `LEGACY_ISSUES.md`, kể cả sau khi chuyển thành `Resolved`.
+- **Regression**: failure do task hiện tại hoặc thay đổi sau baseline tạo ra; phải
+  sửa trước khi hoàn thành, không được chuyển thành legacy issue hoặc technical debt.
+- **Observation chưa phân loại**: chưa đủ bằng chứng về nguồn gốc; giữ trong kế hoạch
+  active cùng bước phân loại tiếp theo.
+- **Technical debt**: khiếm khuyết được chủ động hoãn; không phải nơi hợp thức hóa
+  regression mới.
+
+## Chạy test của harness
+
+Từ root repo nguồn, chạy một command:
+
+```bash
+./tests/run.sh
+```
+
+Test tạo Git repository tạm và bao phủ installer, tám tình huống checker, cùng
+workflow end-to-end trên [`examples/legacy-project/`](./examples/legacy-project/README.md).
+Fixture chứng minh build pass trong khi test và lint có legacy failure đã biết;
+source fixture vẫn nguyên vẹn sau khi cài.
 
 ## Thư viện SOP
 

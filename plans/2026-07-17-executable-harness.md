@@ -28,7 +28,7 @@ Biến repo này từ một bộ template tài liệu thành một harness tối
 | 1 | Chuẩn hóa takeover policy và template | Completed |
 | 2 | Xây dựng installer an toàn | Completed |
 | 3 | Xây dựng harness checker | Completed |
-| 4 | Fixture, test end-to-end và tài liệu sử dụng | Pending |
+| 4 | Fixture, test end-to-end và tài liệu sử dụng | Completed |
 
 Mỗi task bên dưới được thiết kế để hoàn thành, kiểm chứng và review trong một session độc lập.
 
@@ -274,6 +274,7 @@ Khi bắt đầu một task:
 | 2026-07-17 | Planning | Completed | Chia phạm vi thành bốn task có thể kiểm chứng độc lập. |
 | 2026-07-17 | Task 1 | Completed | Ba command `rg` bắt buộc đã chạy: placeholder và tham chiếu trả exit `0`; quy tắc `sửa baseline trước` không còn match, trả exit `1` như kỳ vọng. Review thủ công xác nhận legacy issue tại baseline, regression phải sửa, observation chưa rõ nằm trong active plan và issue đã sửa giữ lại với `Resolved`. Assertion bổ sung cho trường bắt buộc, placeholder cũ, trailing whitespace và `git diff --check` đều pass. |
 | 2026-07-17 | Task 3 | Completed | `bash -n`, `git diff --check` và 8 fixture bắt buộc đều pass: thiếu file, placeholder, link hỏng, thiếu revision, legacy thiếu evidence và thiếu active plan trả exit `1`; legacy hợp lệ trả `BASELINE`/exit `0`; harness đầy đủ trả exit `0` từ thư mục con. Kiểm tra bổ sung xác nhận spec thiếu, quality score chưa khởi tạo, guardrail/command trống đều fail; checker không sửa file, không chạy command ứng dụng và bỏ qua Markdown ngoài phạm vi harness. Giới hạn: fixture còn được tạo tạm; test tái sử dụng và end-to-end cố định thuộc Task 4. `shellcheck` không có trong môi trường. |
+| 2026-07-17 | Task 4 | Completed | `bash -n`, `./tests/run.sh`, kiểm tra link Markdown toàn repo, regression assertions Task 1–3 và `git diff --check` đều pass. Bộ test bao phủ 7 tình huống installer, 8 tình huống checker và end-to-end trên `examples/legacy-project`: build pass; test/lint có failure baseline; revision và legacy evidence khớp; checker trả `BASELINE`/exit `0`; source đã commit không đổi; conflict được giữ hoặc backup khi overwrite. Root `index.md` ghi đầy đủ install, takeover, baseline policy, phân loại failure, checker và một command chạy test. Giới hạn: `shellcheck` không có trong môi trường nên không chạy. |
 
 ## Definition of Done toàn kế hoạch
 
