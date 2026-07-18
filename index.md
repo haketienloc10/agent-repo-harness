@@ -67,7 +67,7 @@ Sau khi cài:
 3. Khảo sát read-only, xác định bootstrap, verify, start command và mechanical guardrail.
 4. Chạy các command an toàn đã chọn và điền kết quả thực tế vào `docs/PROJECT_BASELINE.md`.
 5. Chỉ ghi failure được chứng minh tại đúng baseline revision vào `docs/LEGACY_ISSUES.md`.
-6. Tạo ít nhất một kế hoạch trong `docs/exec-plans/active/` và chạy checker.
+6. Tạo ít nhất một kế hoạch trong `docs/exec-plans/active/` nếu còn task đang làm, rồi chạy checker. Sau khi hoàn thành task cuối cùng và chuyển plan sang `completed/`, `active/` có thể trống.
 
 ```bash
 cd /path/to/repo

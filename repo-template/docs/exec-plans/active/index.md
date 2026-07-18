@@ -1,6 +1,6 @@
 # Kế hoạch Active
 
-Giữ một tệp markdown cho mỗi kế hoạch thực thi active trong thư mục này.
+Giữ một tệp markdown cho mỗi kế hoạch thực thi active trong thư mục này. Thư mục có thể chỉ chứa tệp `index.md` này khi không có task nào đang làm.
 
 Mẫu tên tệp đề xuất:
 

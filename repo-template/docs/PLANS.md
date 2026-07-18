@@ -13,7 +13,7 @@ Tạo một kế hoạch thực thi khi công việc:
 
 ## Vị trí Kế hoạch
 
-- `docs/exec-plans/active/`: các kế hoạch hiện đang thúc đẩy công việc
+- `docs/exec-plans/active/`: các kế hoạch hiện đang thúc đẩy công việc; có thể trống khi không có task đang làm
 - `docs/exec-plans/completed/`: các kế hoạch đã hoàn thành được giữ lại để cung cấp ngữ cảnh cho agent trong tương lai
 - `docs/exec-plans/tech-debt-tracker.md`: công việc đã hoãn và các follow-up
 
@@ -38,3 +38,4 @@ Tạo một kế hoạch thực thi khi công việc:
 - Cập nhật kế hoạch khi công việc tiến triển; đừng coi nó như văn xuôi tĩnh.
 - Nếu một quyết định thay đổi hướng triển khai, hãy ghi lại nó trong kế hoạch.
 - Di chuyển các kế hoạch đã hoàn thành sang `completed/` để agent vẫn có thể khám phá ngữ cảnh trước đó.
+- Khi bắt đầu hoặc tiếp tục một task, tạo hoặc giữ kế hoạch trong `active/`. Sau khi hoàn thành và chuyển kế hoạch cuối cùng sang `completed/`, để `active/` trống là trạng thái hợp lệ.

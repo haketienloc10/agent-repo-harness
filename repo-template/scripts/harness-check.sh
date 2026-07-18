@@ -151,7 +151,7 @@ check_active_plan() {
   if [[ -n "$plan" ]]; then
     report PASS active-plan "Active execution plan found: ${plan#"$REPO_ROOT/"}."
   else
-    report FAIL active-plan "docs/exec-plans/active must contain at least one Markdown plan besides index.md."
+    report PASS active-plan "No active execution plan; docs/exec-plans/active may be empty when no task is in progress."
   fi
 }
 
