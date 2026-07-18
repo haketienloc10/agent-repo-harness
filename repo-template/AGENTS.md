@@ -2,16 +2,6 @@
 
 Kho lưu trữ này được tối ưu hóa cho công việc coding-agent chạy lâu. Giữ tệp này ngắn. Sử dụng nó như lớp định tuyến vào các tài liệu hệ thống ghi chép, không phải như một đống hướng dẫn khổng lồ.
 
-## Cổng Tiếp quản
-
-Trước khi bắt đầu task sản phẩm đầu tiên trong một repo mới cài harness:
-
-1. Đọc và hoàn thành toàn bộ `docs/HARNESS_SETUP.md`.
-2. Chạy `./scripts/harness-check.sh`.
-3. Chỉ bắt đầu task của người dùng khi checker trả exit `0`.
-
-Nếu checker chưa pass, tiếp tục hoàn thiện hồ sơ tiếp quản. Không tự tạo task sửa legacy issue hoặc điểm yếu kiến trúc. Sau khi tiếp quản hoàn thành, `docs/exec-plans/active/` có thể trống cho đến khi có task cần kế hoạch.
-
 ## Quy trình Khởi động
 
 Trước khi thay đổi mã:
@@ -30,7 +20,6 @@ Trước khi thay đổi mã:
 - `ARCHITECTURE.md`: bản đồ domain, mô hình lớp, quy tắc phụ thuộc
 - `docs/design-docs/index.md`: các quyết định thiết kế và niềm tin cốt lõi
 - `docs/product-specs/index.md`: các hành vi sản phẩm hiện tại và mục tiêu chấp nhận
-- `docs/HARNESS_SETUP.md`: workflow khép kín để khảo sát read-only và hoàn thành hồ sơ tiếp quản
 - `docs/PROJECT_BASELINE.md`: snapshot dự án tại revision tiếp quản và giới hạn bằng chứng
 - `docs/LEGACY_ISSUES.md`: failure được chứng minh tồn tại tại baseline revision
 - `docs/PLANS.md`: vòng đời kế hoạch và chính sách kế hoạch thực thi
