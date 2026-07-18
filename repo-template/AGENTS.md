@@ -10,7 +10,7 @@ Trước khi thay đổi mã:
 2. Đọc `ARCHITECTURE.md` để biết bản đồ hệ thống hiện tại và các quy tắc phụ thuộc cứng.
 3. Đọc `docs/PROJECT_BASELINE.md` và `docs/LEGACY_ISSUES.md` để biết revision, giới hạn bằng chứng và failure đã được chứng minh từ trước.
 4. Đọc `docs/QUALITY_SCORE.md` để xem domain hoặc lớp nào yếu nhất.
-5. Đọc `docs/PLANS.md`, sau đó mở kế hoạch active bạn đang làm việc từ đó.
+5. Đọc `docs/PLANS.md`, sau đó mở kế hoạch active bạn đang làm việc từ đó nếu task có kế hoạch.
 6. Đọc spec sản phẩm liên quan trong `docs/product-specs/`.
 7. Đọc command chuẩn trong `docs/RELIABILITY.md`, rồi chạy bootstrap và xác minh phù hợp với phạm vi.
 8. So sánh kết quả với baseline. Không tự sửa legacy failure ngoài phạm vi và không coi baseline failure là regression mới nếu nó không bị làm xấu hơn.
@@ -20,7 +20,6 @@ Trước khi thay đổi mã:
 - `ARCHITECTURE.md`: bản đồ domain, mô hình lớp, quy tắc phụ thuộc
 - `docs/design-docs/index.md`: các quyết định thiết kế và niềm tin cốt lõi
 - `docs/product-specs/index.md`: các hành vi sản phẩm hiện tại và mục tiêu chấp nhận
-- `docs/HARNESS_SETUP.md`: playbook khảo sát read-only và thiết lập hồ sơ tiếp quản
 - `docs/PROJECT_BASELINE.md`: snapshot dự án tại revision tiếp quản và giới hạn bằng chứng
 - `docs/LEGACY_ISSUES.md`: failure được chứng minh tồn tại tại baseline revision
 - `docs/PLANS.md`: vòng đời kế hoạch và chính sách kế hoạch thực thi
@@ -58,7 +57,7 @@ Một thay đổi chỉ xong khi tất cả những điều sau đây là đúng
 
 Trước khi kết thúc phiên:
 
-1. Cập nhật kế hoạch thực thi active.
+1. Cập nhật kế hoạch thực thi active nếu task có kế hoạch.
 2. Cập nhật `docs/QUALITY_SCORE.md` nếu bất kỳ domain hoặc lớp nào thay đổi có ý nghĩa.
 3. Ghi lại nợ thực sự được chủ động hoãn trong `docs/exec-plans/tech-debt-tracker.md`; không dùng tracker để chứa regression.
 4. Di chuyển các kế hoạch đã hoàn thành sang `docs/exec-plans/completed/` khi phù hợp.
