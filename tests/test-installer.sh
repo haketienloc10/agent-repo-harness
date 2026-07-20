@@ -66,3 +66,18 @@ mkdir -p -- "$nongit_repo"
 expect_status 1 "$SOURCE_ROOT/install.sh" --target "$nongit_repo" > "$TEMP_ROOT/nongit.log" 2>&1
 assert_contains 'target is not inside a Git repository' "$TEMP_ROOT/nongit.log"
 pass "installer rejects a non-Git target"
+
+github_source="$TEMP_ROOT/github-source"
+mkdir -p -- "$github_source"
+cp -a -- "$SOURCE_ROOT/." "$github_source/"
+github_archive_dir="$TEMP_ROOT/haketienloc10/agent-repo-harness/archive"
+mkdir -p -- "$github_archive_dir"
+tar -czf "$github_archive_dir/main.tar.gz" -C "$TEMP_ROOT" "$(basename -- "$github_source")"
+github_target="$TEMP_ROOT/github-target"
+new_git_repo "$github_target"
+GITHUB_ARCHIVE_BASE_URL="file://$TEMP_ROOT" \
+  "$SOURCE_ROOT/install-from-github.sh" --target "$github_target" > "$TEMP_ROOT/github.log"
+assert_file "$github_target/AGENTS.md"
+assert_contains 'Downloading harness from haketienloc10/agent-repo-harness at ref main' "$TEMP_ROOT/github.log"
+assert_contains 'Running installer' "$TEMP_ROOT/github.log"
+pass "GitHub bootstrap installs without a local harness clone"

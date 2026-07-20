@@ -49,6 +49,24 @@ docs/
 Repo đích phải là root của một Git repository đã tồn tại. Installer chỉ sao chép
 các file harness; nó không chạy build, test, lint, migration hoặc source code dự án.
 
+### Cài nhanh từ GitHub
+
+Không cần clone repo harness. Chạy từ máy có `curl`, `tar` và Git:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/haketienloc10/agent-repo-harness/main/install-from-github.sh | bash -s -- --target /path/to/repo --dry-run
+curl -fsSL https://raw.githubusercontent.com/haketienloc10/agent-repo-harness/main/install-from-github.sh | bash -s -- --target /path/to/repo
+```
+
+Bootstrap script tải GitHub archive vào thư mục tạm, kiểm tra các file installer
+bắt buộc, rồi gọi `install.sh`. Để cố định một tag hoặc commit SHA thay vì `main`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/haketienloc10/agent-repo-harness/main/install-from-github.sh | HARNESS_REF=<tag-or-commit-sha> bash -s -- --target /path/to/repo
+```
+
+### Cài từ bản clone local
+
 ```bash
 ./install.sh --target /path/to/repo --dry-run
 ./install.sh --target /path/to/repo
