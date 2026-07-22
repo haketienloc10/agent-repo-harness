@@ -36,6 +36,20 @@ Trước khi thay đổi mã:
 5. Nếu module không có `AGENTS.md`, đọc README, tài liệu vận hành và cấu hình
    của module để xác định command khởi động và xác minh phù hợp.
 
+## Chất lượng Câu trả lời
+
+Tránh câu trả lời trừu tượng.
+
+Khi giải thích quyết định, kế hoạch, rủi ro, bug, kiến trúc hoặc trade-off, dùng ví dụ cụ thể và lập luận nhân quả theo từng bước.
+
+Khi phù hợp, ưu tiên cấu trúc sau:
+
+1. Điều gì xảy ra
+2. Vì sao điều đó xảy ra
+3. Ví dụ cụ thể
+4. Tác động dẫn đến
+5. Hành động được khuyến nghị
+
 ## Thay đổi Đơn Module
 
 - Tuân theo hướng dẫn, command test và Definition of Done riêng của module nếu
