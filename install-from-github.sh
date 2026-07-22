@@ -320,6 +320,16 @@ print_agent_prompt() {
   local status="$1"
 
   printf '\n=== PROMPT CHO AGENT ===\n'
+  if [[ "$dry_run" == true ]]; then
+    cat <<'PROMPT'
+Đây mới là dry-run; chưa có file harness nào được cài hoặc ghi đè.
+
+Hãy review danh sách `Created`, `Skipped` và `Conflicts` ở phía trên. Xử lý hoặc xác nhận các conflict cần thiết, sau đó chạy lại cùng lệnh nhưng bỏ `--dry-run`. Chỉ giao prompt takeover cho agent sau khi lần cài đặt thật hoàn tất.
+PROMPT
+    printf '=== HẾT PROMPT ===\n'
+    return
+  fi
+
   if ((status == 2)); then
     printf '%s\n\n' 'Cài đặt có Conflicts. Trước tiên hãy review từng conflict, giữ nguyên file thuộc dự án khi chưa có bằng chứng rằng có thể thay thế, rồi mới tiếp tục quy trình bên dưới.'
   fi
