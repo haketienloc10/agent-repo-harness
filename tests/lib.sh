@@ -126,13 +126,38 @@ make_configured_repo() {
   git -C "$target" commit -qm baseline
   revision="$(git -C "$target" rev-parse HEAD)"
   install_harness "$target" >/dev/null
-  while IFS= read -r file || [[ -n "$file" ]]; do
-    [[ -z "$file" || "$file" == \#* || "$file" == ".harness-required-files" || \
-      "$file" == ".harness/installation.json" ]] && continue
-    mkdir -p -- "$target/$(dirname -- "$file")"
-    cp -p -- "$SOURCE_ROOT/repo-template/$file" "$target/$file"
-  done < "$SOURCE_ROOT/.harness-required-files"
-  cp -- "$SOURCE_ROOT/.harness-required-files" "$target/.harness-required-files"
+  printf '%s\n' \
+    '# v1 characterization manifest used only by tests' \
+    '.harness-required-files' \
+    '.harness/installation.json' \
+    'AGENTS.md' \
+    'ARCHITECTURE.md' \
+    'docs/HARNESS_SETUP.md' \
+    'docs/RELIABILITY.md' \
+    'docs/PROJECT_BASELINE.md' \
+    'docs/SECURITY.md' \
+    'scripts/harness-check.sh' \
+    > "$target/.harness-required-files"
+  printf '%s\n' \
+    '# RELIABILITY.md' \
+    '' \
+    '- Bootstrap: `true`' \
+    '- Xác minh: `./project-checks/build.sh`' \
+    '- Khởi động app hoặc service: Not applicable — fixture không có service.' \
+    '- Mechanical guardrail: `./scripts/harness-check.sh`' \
+    > "$target/docs/RELIABILITY.md"
+  printf '%s\n' \
+    '# PROJECT_BASELINE.md' \
+    '' \
+    '- Ngày baseline: 2026-07-17' \
+    "- Git revision: \`$revision\`" \
+    > "$target/docs/PROJECT_BASELINE.md"
+  printf '%s\n' \
+    '# SECURITY.md' \
+    '' \
+    'Fixture security policy is configured.' \
+    > "$target/docs/SECURITY.md"
+  printf '%s\n' '# QUALITY_SCORE.md' > "$target/docs/QUALITY_SCORE.md"
   printf '%s\n' \
     '{' \
     '  "installed_at": "2026-07-17T00:00:00Z",' \

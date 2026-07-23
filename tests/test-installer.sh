@@ -34,6 +34,23 @@ for excluded_path in \
   docs/generated docs/references docs/tasks/completed docs/exec-plans/completed; do
   assert_not_exists "$empty_repo/$excluded_path"
 done
+mapfile -t template_files < <(
+  find "$SOURCE_ROOT/repo-template" -type f -printf '%P\n' | sort
+)
+expected_template_files=(
+  ".harness-required-files"
+  "AGENTS.md"
+  "ARCHITECTURE.md"
+  "docs/HARNESS_SETUP.md"
+  "docs/VERIFY.md"
+  "index.md"
+  "scripts/harness-check.sh"
+)
+[[ "${template_files[*]}" == "${expected_template_files[*]}" ]] || {
+  printf 'Expected source-template files:\n%s\n' "${expected_template_files[*]}" >&2
+  printf 'Actual source-template files:\n%s\n' "${template_files[*]}" >&2
+  fail "source template contains deprecated default artifacts"
+}
 [[ -x "$empty_repo/scripts/harness-check.sh" ]] || fail "checker must remain executable"
 assert_contains 'Mode: safe install (no overwrite)' "$TEMP_ROOT/empty.log"
 assert_contains 'Summary: Created=' "$TEMP_ROOT/empty.log"

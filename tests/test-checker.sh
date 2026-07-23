@@ -22,8 +22,8 @@ run_failure_case() {
 }
 
 remove_required() { rm -f -- "$1/docs/SECURITY.md"; }
-add_placeholder() { printf '\n{{UNFILLED_VALUE}}\n' >> "$1/docs/DESIGN.md"; }
-add_broken_link() { printf '\n[broken](missing.md)\n' >> "$1/docs/DESIGN.md"; }
+add_placeholder() { printf '\n{{UNFILLED_VALUE}}\n' >> "$1/ARCHITECTURE.md"; }
+add_broken_link() { printf '\n[broken](missing.md)\n' >> "$1/ARCHITECTURE.md"; }
 break_revision() { sed -i 's/^- Git revision:.*/- Git revision: `not-a-revision`/' "$1/docs/PROJECT_BASELINE.md"; }
 remove_evidence() { sed -i 's/^- Baseline evidence:.*/- Baseline evidence: /' "$1/docs/LEGACY_ISSUES.md"; }
 run_failure_case missing-file 'docs/SECURITY.md is missing' remove_required
@@ -223,6 +223,7 @@ pass "resolved state and incomplete active plans fail with actionable locations"
 
 optional_sources="$TEMP_ROOT/optional-sources"
 cp -a -- "$optional_contracts" "$optional_sources"
+mkdir -p -- "$optional_sources/docs/generated" "$optional_sources/docs/references"
 printf '%s\n' \
   '# Generated greeting schema' '' \
   '- Source: `src/greeting/schema.json`' \
@@ -318,6 +319,7 @@ pass "v2 takeover status enum is validated"
 
 completed_plan="$TEMP_ROOT/completed-plan"
 make_v1_repo "$completed_plan"
+mkdir -p -- "$completed_plan/docs/exec-plans/completed"
 mv -- "$completed_plan/docs/exec-plans/active/verify-fixture.md" \
   "$completed_plan/docs/exec-plans/completed/verify-fixture.md"
 expect_status 0 "$completed_plan/scripts/harness-check.sh" > "$TEMP_ROOT/completed-plan.log"
