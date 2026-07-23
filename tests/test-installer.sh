@@ -66,7 +66,7 @@ expected = {
     "schema": "harness/installation/v2",
     "source": "local",
     "ref": sys.argv[2],
-    "harness_version": "1.0.0",
+    "harness_version": "2.0.0",
     "takeover_status": "pending",
     "baseline_revision": "",
     "takeover_completed_at": "",

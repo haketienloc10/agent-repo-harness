@@ -3,7 +3,7 @@
 set -u
 set -o pipefail
 
-HARNESS_VERSION="1.0.0"
+HARNESS_VERSION="2.0.0"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 TEMPLATE_DIR="$SCRIPT_DIR/repo-template"
 MANIFEST_PATH="$TEMPLATE_DIR/.harness-required-files"
