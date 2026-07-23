@@ -690,13 +690,129 @@ check_task_plans() {
   fi
 }
 
+check_task_friction_file() {
+  local lifecycle="$1"
+  local file="$2"
+  local relative_path="${file#"$REPO_ROOT/"}"
+  local friction_line
+  local next_heading_offset
+  local friction_end
+  local section
+  local heading_data
+  local -a headings=()
+  local index
+  local relative_line
+  local line_number
+  local next_line
+  local heading
+  local item
+  local id
+  local label
+  local value
+  local disposition
+  local target
+  local invalid=0
+  local count=0
+  local heading_pattern='^###[[:space:]]+`?(FR-[0-9]{3})`?[[:space:]]*:'
+
+  friction_line="$(grep -niEm1 '^[[:space:]]*##[[:space:]]+Friction[[:space:]]*$' "$file" 2>/dev/null | cut -d: -f1)"
+  [[ -n "$friction_line" ]] || return
+
+  next_heading_offset="$(tail -n "+$((friction_line + 1))" "$file" |
+    grep -nEm1 '^[[:space:]]*##[[:space:]]+' | cut -d: -f1 || true)"
+  if [[ -n "$next_heading_offset" ]]; then
+    friction_end=$((friction_line + next_heading_offset - 1))
+  else
+    friction_end="$(wc -l < "$file")"
+  fi
+  section="$(sed -n "${friction_line},${friction_end}p" "$file")"
+  mapfile -t headings < <(grep -nE '^###[[:space:]]+' <<< "$section" || true)
+
+  if ((${#headings[@]} == 0)); then
+    report FAIL "$lifecycle-friction" "$relative_path:$friction_line has a Friction section without an FR-NNN item; remove the empty section or record concrete friction."
+    return
+  fi
+
+  for ((index = 0; index < ${#headings[@]}; index += 1)); do
+    ((count += 1))
+    heading_data="${headings[$index]}"
+    relative_line="${heading_data%%:*}"
+    line_number=$((friction_line + relative_line - 1))
+    heading="${heading_data#*:}"
+    if ((index + 1 < ${#headings[@]})); then
+      next_line="${headings[$((index + 1))]%%:*}"
+      item="$(sed -n "${relative_line},$((next_line - 1))p" <<< "$section")"
+    else
+      item="$(sed -n "${relative_line},\$p" <<< "$section")"
+    fi
+
+    if [[ "$heading" =~ $heading_pattern ]]; then
+      id="${BASH_REMATCH[1]}"
+    else
+      report FAIL "$lifecycle-friction" "$relative_path:$line_number has a friction heading without an ID matching FR-NNN."
+      invalid=1
+      continue
+    fi
+
+    for label in "Evidence" "Impact" "Disposition"; do
+      value="$(trim_value "$(grep -m1 -E "^[[:space:]]*-[[:space:]]+${label}:[[:space:]]*" <<< "$item" || true)")"
+      if ! is_configured_value "$value"; then
+        report FAIL "$lifecycle-friction" "$relative_path:$line_number $id has no configured '$label'."
+        invalid=1
+      fi
+    done
+
+    disposition="$(trim_value "$(grep -m1 -E '^[[:space:]]*-[[:space:]]+Disposition:[[:space:]]*' <<< "$item" || true)")"
+    case "$disposition" in
+      open|fixed-in-task|extracted-to-agents|extracted-to-architecture|extracted-to-verify|promoted-to-checker|promoted-to-test|follow-up-task|accepted-no-action)
+        ;;
+      "")
+        ;;
+      *)
+        report FAIL "$lifecycle-friction" "$relative_path:$line_number $id has invalid Disposition '$disposition'."
+        invalid=1
+        ;;
+    esac
+
+    if [[ "$lifecycle" == "completed" && "$disposition" == "open" ]]; then
+      report FAIL "$lifecycle-friction" "$relative_path:$line_number keeps $id open in a completed plan; resolve or route it before archive."
+      invalid=1
+    fi
+
+    if [[ "$disposition" =~ ^(extracted-to-agents|extracted-to-architecture|extracted-to-verify|follow-up-task)$ ]]; then
+      target="$(trim_value "$(grep -m1 -E '^[[:space:]]*-[[:space:]]+Extraction target:[[:space:]]*' <<< "$item" || true)")"
+      if ! is_configured_value "$target"; then
+        report FAIL "$lifecycle-friction" "$relative_path:$line_number $id with disposition '$disposition' requires an Extraction target."
+        invalid=1
+      fi
+    fi
+  done
+
+  if ((invalid == 0)); then
+    report PASS "$lifecycle-friction" "$relative_path records $count friction item(s) with evidence and disposition."
+  fi
+}
+
+check_task_friction() {
+  local lifecycle="$1"
+  local directory="$REPO_ROOT/docs/tasks/$lifecycle"
+  local file
+
+  [[ "$installation_schema" == "v2" && -d "$directory" ]] || return
+  while IFS= read -r -d '' file; do
+    check_task_friction_file "$lifecycle" "$file"
+  done < <(find "$directory" -maxdepth 1 -type f -name '*.md' ! -name 'index.md' -print0)
+}
+
 check_optional_tasks() {
   check_task_plans active \
     "Goal" "Scope" "Current state" "Next action" "Verification" "Durable knowledge to extract"
-  # Completed plans are retained. This is a shallow, heading-only validation:
-  # nested attachments and linked history are not traversed on every checker run.
+  check_task_friction active
+  # Completed plans are retained. This is a shallow validation: nested attachments
+  # and linked history are not traversed on every checker run.
   check_task_plans completed \
     "Final outcome" "Verification evidence" "Durable extraction"
+  check_task_friction completed
 }
 
 metadata_value() {
