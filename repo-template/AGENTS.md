@@ -13,12 +13,7 @@ migration hoặc cấu hình runtime:
 1. Xác nhận repository root.
 2. Đọc `ARCHITECTURE.md` để hiểu hệ thống và dependency hiện có.
 3. Đọc `docs/VERIFY.md` để biết command bootstrap, test và guardrail chuẩn.
-4. Đọc `.harness/installation.json` nếu file tồn tại.
-5. Chỉ khi `takeover_status` là `pending` hoặc `blocked`, đọc
-   `docs/HARNESS_SETUP.md` và hoàn tất takeover hoặc báo blocker trước khi nhận
-   task sản phẩm. Khi `takeover_status` là `complete`, không đọc
-   `docs/HARNESS_SETUP.md` trong luồng làm việc thông thường.
-6. Dùng bảng định tuyến bên dưới để chỉ mở artifact liên quan.
+4. Dùng bảng định tuyến bên dưới để chỉ mở artifact liên quan.
 
 ## Định tuyến theo concern
 
