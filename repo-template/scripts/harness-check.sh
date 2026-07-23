@@ -680,6 +680,72 @@ check_optional_tasks() {
     "Final outcome" "Verification evidence" "Durable extraction"
 }
 
+metadata_value() {
+  local file="$1"
+  local label="$2"
+  local line
+
+  line="$(grep -aEim1 "^[[:space:]]*(-[[:space:]]*)?${label}:[[:space:]]*" "$file" 2>/dev/null || true)"
+  trim_value "$line"
+}
+
+check_artifact_metadata() {
+  local check="$1"
+  local relative_dir="$2"
+  shift 2
+  local directory="$REPO_ROOT/$relative_dir"
+  local file
+  local relative_path
+  local requirement
+  local -a alternatives=()
+  local label
+  local value
+  local count=0
+  local skipped=0
+  local invalid=0
+  local field_valid
+
+  [[ "$installation_schema" == "v2" && -d "$directory" ]] || return
+  while IFS= read -r -d '' file; do
+    relative_path="${file#"$REPO_ROOT/"}"
+    if grep -Fxq -- "$relative_path" "$MANIFEST_PATH" 2>/dev/null; then
+      ((skipped += 1))
+      continue
+    fi
+    ((count += 1))
+    check_optional_placeholders "$check" "$file" || invalid=1
+    for requirement in "$@"; do
+      field_valid=0
+      IFS='|' read -r -a alternatives <<< "$requirement"
+      for label in "${alternatives[@]}"; do
+        value="$(metadata_value "$file" "$label")"
+        if is_configured_value "$value"; then
+          field_valid=1
+          break
+        fi
+      done
+      if ((field_valid == 0)); then
+        report FAIL "$check" "$relative_path:1 has no configured '${requirement//|/ or }' metadata; add it so the artifact can be traced and refreshed."
+        invalid=1
+      fi
+    done
+  done < <(find "$directory" -maxdepth 1 -type f ! -name 'index.md' -print0)
+
+  if ((count == 0 && skipped == 0)); then
+    report FAIL "$check" "$relative_dir:1 exists but contains no artifact; add a sourced artifact or remove the empty optional directory."
+  elif ((count > 0 && invalid == 0)); then
+    report PASS "$check" "$relative_dir contains $count traceable artifact(s) with refresh metadata."
+  fi
+}
+
+check_generated_and_references() {
+  check_artifact_metadata generated docs/generated \
+    "Source" "Generator command|Command" "Generator version|Generated at|Generated date" \
+    "Applies to" "Refresh trigger"
+  check_artifact_metadata references docs/references \
+    "Source" "Version|Retrieved at|Retrieval date" "Applies to" "Refresh trigger"
+}
+
 check_guardrail() {
   local relative_path
   local file
@@ -756,6 +822,7 @@ check_optional_decisions
 check_optional_ui_security
 check_known_debt
 check_optional_tasks
+check_generated_and_references
 check_guardrail
 check_installation_state
 

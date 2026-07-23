@@ -218,6 +218,37 @@ assert_contains 'keeps resolved DEBT-001 as open debt' "$TEMP_ROOT/invalid-lifec
 assert_contains "docs/tasks/active/cache.md:1 must contain a 'Next action' heading" "$TEMP_ROOT/invalid-lifecycle.log"
 pass "resolved state and incomplete active plans fail with actionable locations"
 
+optional_sources="$TEMP_ROOT/optional-sources"
+cp -a -- "$optional_contracts" "$optional_sources"
+printf '%s\n' \
+  '# Generated greeting schema' '' \
+  '- Source: `src/greeting/schema.json`' \
+  '- Generator command: `./scripts/generate-schema.sh`' \
+  '- Generator version: `schema-tool 2.1.0`' \
+  '- Applies to: `GET /greeting` response consumers' \
+  '- Refresh trigger: regenerate when `src/greeting/schema.json` changes' \
+  > "$optional_sources/docs/generated/greeting-schema.md"
+printf '%s\n' \
+  '# HTTP semantics reference' '' \
+  '- Source: https://www.rfc-editor.org/rfc/rfc9110' \
+  '- Retrieved at: 2026-07-23' \
+  '- Applies to: status handling in `src/greeting`' \
+  '- Refresh trigger: refresh when the HTTP dependency changes major version' \
+  > "$optional_sources/docs/references/http-semantics.md"
+expect_status 0 "$optional_sources/scripts/harness-check.sh" > "$TEMP_ROOT/optional-sources.log"
+assert_contains 'PASS [generated] docs/generated contains 1 traceable artifact(s)' "$TEMP_ROOT/optional-sources.log"
+assert_contains 'PASS [references] docs/references contains 1 traceable artifact(s)' "$TEMP_ROOT/optional-sources.log"
+pass "generated artifacts and references pass with source and refresh metadata"
+
+invalid_sources="$TEMP_ROOT/invalid-sources"
+cp -a -- "$optional_sources" "$invalid_sources"
+sed -i '/^- Applies to:/d' "$invalid_sources/docs/generated/greeting-schema.md"
+printf '\n{{REFERENCE_VERSION}}\n' >> "$invalid_sources/docs/references/http-semantics.md"
+expect_status 1 "$invalid_sources/scripts/harness-check.sh" > "$TEMP_ROOT/invalid-sources.log"
+assert_contains "docs/generated/greeting-schema.md:1 has no configured 'Applies to' metadata" "$TEMP_ROOT/invalid-sources.log"
+assert_contains 'FAIL [references] docs/references/http-semantics.md:8:{{REFERENCE_VERSION}}' "$TEMP_ROOT/invalid-sources.log"
+pass "untraceable generated and reference artifacts fail with actionable locations"
+
 malformed="$TEMP_ROOT/malformed-json"
 make_v1_repo "$malformed"
 printf '%s\n' '{"schema": "harness/installation/v2",' > "$malformed/.harness/installation.json"
