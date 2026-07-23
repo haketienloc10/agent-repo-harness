@@ -11,17 +11,61 @@ new_temp_root
 empty_repo="$TEMP_ROOT/empty"
 new_git_repo "$empty_repo"
 install_harness "$empty_repo" > "$TEMP_ROOT/empty.log"
-assert_file "$empty_repo/AGENTS.md"
-assert_file "$empty_repo/.harness/installation.json"
-assert_not_exists "$empty_repo/index.md"
+mapfile -t installed_files < <(
+  find "$empty_repo" -path "$empty_repo/.git" -prune -o -type f -printf '%P\n' | sort
+)
+expected_files=(
+  ".harness-required-files"
+  ".harness/installation.json"
+  "AGENTS.md"
+  "ARCHITECTURE.md"
+  "docs/HARNESS_SETUP.md"
+  "docs/VERIFY.md"
+  "scripts/harness-check.sh"
+)
+[[ "${installed_files[*]}" == "${expected_files[*]}" ]] || {
+  printf 'Expected fresh-install files:\n%s\n' "${expected_files[*]}" >&2
+  printf 'Actual fresh-install files:\n%s\n' "${installed_files[*]}" >&2
+  fail "fresh install must contain exactly seven core files"
+}
+for excluded_path in \
+  docs/QUALITY_SCORE.md docs/PRODUCT_SENSE.md docs/PLANS.md docs/DESIGN.md \
+  docs/FRONTEND.md docs/TAKEOVER_BASELINE.md docs/product-specs \
+  docs/generated docs/references docs/tasks/completed docs/exec-plans/completed; do
+  assert_not_exists "$empty_repo/$excluded_path"
+done
 [[ -x "$empty_repo/scripts/harness-check.sh" ]] || fail "checker must remain executable"
 assert_contains 'Mode: safe install (no overwrite)' "$TEMP_ROOT/empty.log"
 assert_contains 'Summary: Created=' "$TEMP_ROOT/empty.log"
-assert_contains '"harness_version": "1.0.0"' "$empty_repo/.harness/installation.json"
-assert_contains '"baseline_status": "pending"' "$empty_repo/.harness/installation.json"
+python3 - "$empty_repo/.harness/installation.json" "$(git -C "$SOURCE_ROOT" rev-parse HEAD)" <<'PY'
+import datetime
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as stream:
+    metadata = json.load(stream)
+
+expected = {
+    "schema": "harness/installation/v2",
+    "source": "local",
+    "ref": sys.argv[2],
+    "harness_version": "1.0.0",
+    "takeover_status": "pending",
+    "baseline_revision": "",
+    "takeover_completed_at": "",
+    "blocker_reason": "",
+}
+for key, value in expected.items():
+    if metadata.get(key) != value:
+        raise SystemExit(f"{key}: expected {value!r}, got {metadata.get(key)!r}")
+datetime.datetime.fromisoformat(metadata["installed_at"].replace("Z", "+00:00"))
+PY
 assert_contains 'Open docs/HARNESS_SETUP.md' "$TEMP_ROOT/empty.log"
 assert_contains 'ready for user tasks only when the checker exits 0' "$TEMP_ROOT/empty.log"
-pass "installer installs an empty Git repository and routes takeover to HARNESS_SETUP.md"
+expect_status 1 "$empty_repo/scripts/harness-check.sh" > "$TEMP_ROOT/empty-check.log"
+assert_contains 'Takeover is pending; the repository is not ready for user tasks.' "$TEMP_ROOT/empty-check.log"
+assert_not_contains 'PASS [summary] Harness configuration is valid.' "$TEMP_ROOT/empty-check.log"
+pass "installer emits exactly seven v2 core files and leaves pending repository not ready"
 
 conflict_repo="$TEMP_ROOT/conflict"
 new_git_repo "$conflict_repo"
@@ -43,13 +87,16 @@ pass "dry run does not change the target filesystem"
 second_repo="$TEMP_ROOT/second"
 new_git_repo "$second_repo"
 install_harness "$second_repo" >/dev/null
-sed -i 's/"baseline_status": "pending"/"baseline_status": "complete"/' \
+sed -i \
+  -e 's/"takeover_status": "pending"/"takeover_status": "blocked"/' \
+  -e 's/"blocker_reason": ""/"blocker_reason": "Waiting for repository credentials."/' \
   "$second_repo/.harness/installation.json"
 metadata_before="$(<"$second_repo/.harness/installation.json")"
 install_harness "$second_repo" > "$TEMP_ROOT/second.log"
 metadata_after="$(<"$second_repo/.harness/installation.json")"
 [[ "$metadata_before" == "$metadata_after" ]] || fail "second install changed installation metadata"
-assert_contains '"baseline_status": "complete"' "$second_repo/.harness/installation.json"
+assert_contains '"takeover_status": "blocked"' "$second_repo/.harness/installation.json"
+assert_contains '"blocker_reason": "Waiting for repository credentials."' "$second_repo/.harness/installation.json"
 assert_contains 'Skipped: .harness/installation.json (installation metadata preserved)' "$TEMP_ROOT/second.log"
 assert_contains 'Conflicts=0' "$TEMP_ROOT/second.log"
 pass "second install preserves configured files and metadata"
@@ -88,6 +135,8 @@ new_git_repo "$github_target"
 GITHUB_ARCHIVE_BASE_URL="file://$TEMP_ROOT" \
   "$SOURCE_ROOT/install-from-github.sh" --mode repository --target "$github_target" > "$TEMP_ROOT/github.log"
 assert_file "$github_target/AGENTS.md"
+assert_contains '"source": "github:haketienloc10/agent-repo-harness"' "$github_target/.harness/installation.json"
+assert_contains '"ref": "main"' "$github_target/.harness/installation.json"
 assert_contains 'Downloading harness from haketienloc10/agent-repo-harness at ref main' "$TEMP_ROOT/github.log"
 assert_contains 'Running repository installer' "$TEMP_ROOT/github.log"
 assert_contains 'docs/HARNESS_SETUP.md' "$TEMP_ROOT/github.log"
