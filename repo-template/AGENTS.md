@@ -64,7 +64,7 @@ active
 → verification hoàn tất
 → chắt lọc durable knowledge
 → final summary
-→ chuyển sang docs/tasks/completed/
+→ dùng `mv` chuyển sang docs/tasks/completed/
 → giữ lâu dài
 ```
 
