@@ -2,6 +2,10 @@
 
 Tệp này là bản đồ cấp cao nhất của hệ thống. Nó nên ngắn gọn và trỏ đến các tài liệu sâu hơn khi cần.
 
+Trong installation v2, bằng chứng bootstrap, build, test, lint, start và golden
+journey thuộc `docs/VERIFY.md`; snapshot tiếp quản thuộc
+`docs/TAKEOVER_BASELINE.md` sau khi takeover bắt đầu.
+
 ## Hình dạng Hệ thống
 
 - Sản phẩm: `{{PRODUCT_NAME}}`

@@ -7,6 +7,11 @@ Kho lưu trữ này được tối ưu hóa cho công việc coding-agent chạy
 Với task chỉ đọc, giải thích hoặc báo cáo, chỉ mở tài liệu cần cho câu hỏi. Không
 chạy toàn bộ quy trình dưới đây.
 
+Trước mọi task, đọc `.harness/installation.json` nếu file tồn tại. Với schema
+`harness/installation/v2`, chỉ nhận task sản phẩm khi `takeover_status` là
+`complete`. Khi status là `pending` hoặc `blocked`, mở `docs/HARNESS_SETUP.md`
+và tiếp tục hoặc báo blocker của quá trình takeover; không báo repository ready.
+
 Trước khi thay đổi code, test, build script, migration hoặc cấu hình runtime:
 
 1. Xác nhận thư mục gốc repo bằng `pwd`.
@@ -14,7 +19,8 @@ Trước khi thay đổi code, test, build script, migration hoặc cấu hình 
    - `ARCHITECTURE.md`: bản đồ hệ thống và quy tắc phụ thuộc cứng.
    - `docs/QUALITY_SCORE.md`: domain, layer yếu và khoảng trống evidence hiện tại.
    - `docs/PLANS.md`: quy tắc tạo và duy trì execution-plan artifact.
-   - `docs/RELIABILITY.md`: command bootstrap, verify và start chuẩn.
+   - `docs/VERIFY.md` (hoặc `docs/RELIABILITY.md` trên installation v1):
+     command bootstrap, verify và start chuẩn.
 3. Tạo hoặc mở execution-plan artifact trong `docs/exec-plans/active/` trước khi dùng tool sửa file.
 4. Dùng Bản đồ Định tuyến bên dưới để chỉ đọc thêm file có điều kiện khớp task.
 5. Chạy bootstrap và xác minh ban đầu phù hợp với phạm vi theo `docs/RELIABILITY.md`.

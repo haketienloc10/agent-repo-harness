@@ -6,6 +6,27 @@ Mục tiêu của quá trình tiếp quản là khảo sát trạng thái hiện
 
 Quá trình tiếp quản hoàn thành khi `./scripts/harness-check.sh` trả exit `0`. Trước thời điểm đó, không bắt đầu task sản phẩm của người dùng.
 
+## Trạng thái installation v2
+
+`.harness/installation.json` là nguồn sự thật machine-readable cho trạng thái
+takeover:
+
+- `pending`: trạng thái fresh install; checker phải trả non-zero và repository
+  chưa ready;
+- `blocked`: takeover không thể tiếp tục; điền `blocker_reason` cụ thể;
+- `complete`: chỉ đặt sau khi baseline và verification có bằng chứng đầy đủ.
+
+Khi bắt đầu takeover v2, tạo `docs/TAKEOVER_BASELINE.md` từ bằng chứng khảo sát.
+Fresh install không cài sẵn file này. Ghi revision đang tiếp quản vào
+`baseline_revision`; khi hoàn tất, ghi timestamp RFC 3339 vào
+`takeover_completed_at`, chuyển `takeover_status` thành `complete`, rồi chạy
+checker. Không thay đổi `source`, `ref`, `installed_at` hoặc `harness_version`.
+
+Với installation v2, ghi command và kết quả vận hành vào `docs/VERIFY.md`, đồng
+thời dùng `docs/TAKEOVER_BASELINE.md` thay cho các đường dẫn v1
+`docs/RELIABILITY.md` và `docs/PROJECT_BASELINE.md`. Các chỉ dẫn v1 còn lại
+trong tài liệu này chỉ phục vụ repository được cài bằng schema cũ.
+
 ## Kết quả cần đạt
 
 Sau khi hoàn thành tài liệu này, repo phải có:
