@@ -44,5 +44,5 @@ Biến xác minh UI thành một vòng lặp tương tác có thể lặp lại 
 ## Artifact Repo Cần Cập nhật
 
 - kế hoạch thực thi active
-- `docs/RELIABILITY.md` nếu journey trở thành một golden path
+- `docs/VERIFY.md` nếu journey trở thành một golden path
 - product spec nếu hành vi có thể nhìn thấy thay đổi

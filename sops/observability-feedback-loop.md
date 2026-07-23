@@ -38,4 +38,4 @@ Cung cấp cho agent một vòng lặp phản hồi cục bộ qua log, metrics,
 - Agent có thể giải thích một chế độ thất bại từ bằng chứng runtime.
 - Cùng workload có thể được chạy lại sau mỗi thay đổi.
 - Khởi động lại và chạy lại là một phần của vòng lặp tác vụ bình thường.
-- Các tín hiệu độ tin cậy được ghi lại trong `docs/RELIABILITY.md`.
+- Các command, journey và tín hiệu xác minh được ghi trong `docs/VERIFY.md`.

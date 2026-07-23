@@ -29,7 +29,7 @@ Các mối quan tâm xuyên suốt nên đi vào qua các provider hoặc adapte
 3. Xác định tất cả các mối quan tâm xuyên suốt và định tuyến chúng qua các provider hoặc adapter.
 4. Ghi lại các quy tắc trong `ARCHITECTURE.md`.
 5. Thêm một guardrail có thể thực thi cho vi phạm có chi phí cao nhất.
-6. Cập nhật điểm chất lượng sau khi thay đổi.
+6. Cập nhật decision, debt hoặc guardrail liên quan sau khi thay đổi.
 
 ## Định nghĩa Hoàn thành
 
@@ -41,6 +41,6 @@ Các mối quan tâm xuyên suốt nên đi vào qua các provider hoặc adapte
 ## Artifact Repo Cần Cập nhật
 
 - `ARCHITECTURE.md`
-- `docs/QUALITY_SCORE.md`
-- `docs/design-docs/` khi lý luận thay đổi
-- `docs/PLANS.md` hoặc kế hoạch thực thi active
+- `docs/decisions/` khi lý luận thay đổi
+- `docs/tasks/active/` khi task đạt planning trigger
+- `docs/KNOWN_DEBT.md` nếu có constraint thực sự được chủ động hoãn

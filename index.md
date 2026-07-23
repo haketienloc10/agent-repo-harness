@@ -11,38 +11,39 @@ Bài viết harness engineering mô tả các nguyên tắc cấp cao: kho lưu 
 - thư mục tài liệu tham khảo thân thiện với model
 - các quy trình vận hành chuẩn cho kiến trúc, thu thập kiến thức, và xác minh runtime
 
-## Bố cục Bắt đầu Có sẵn
+## Bố cục Source Template
 
-Gói cho một repository trong [`repo-template/`](./repo-template/index.md) phản ánh cấu trúc dưới đây:
+Fresh install repository từ [`repo-template/`](./repo-template/index.md) chỉ tạo
+bảy core file:
 
 ```text
+.harness-required-files
+.harness/
+└── installation.json
 AGENTS.md
 ARCHITECTURE.md
 docs/
-├── design-docs/
-│   ├── index.md
-│   └── core-beliefs.md
-├── exec-plans/
-│   ├── active/
-│   ├── completed/
-│   └── tech-debt-tracker.md
-├── generated/
-│   └── db-schema.md
-├── product-specs/
-│   ├── index.md
-│   └── new-user-onboarding.md
-├── references/
-│   ├── design-system-reference-llms.txt
-│   ├── nixpacks-llms.txt
-│   └── uv-llms.txt
-├── DESIGN.md
-├── FRONTEND.md
-├── PLANS.md
-├── PRODUCT_SENSE.md
-├── QUALITY_SCORE.md
-├── RELIABILITY.md
-└── SECURITY.md
+├── HARNESS_SETUP.md
+└── VERIFY.md
+scripts/
+└── harness-check.sh
 ```
+
+Artifact optional chỉ được tạo khi repository có nội dung thực. Source of truth:
+
+| Concern | Artifact v2 |
+|---|---|
+| Cấu trúc và dependency | `ARCHITECTURE.md` |
+| Command và evidence xác minh hiện tại | `docs/VERIFY.md` |
+| Snapshot takeover | `docs/TAKEOVER_BASELINE.md` |
+| Hành vi sản phẩm/API | `docs/specs/` |
+| Quyết định kiến trúc | `docs/decisions/` |
+| UI rule | `docs/UI.md` |
+| Security rule | `docs/SECURITY.md` |
+| Legacy failure có baseline evidence | `docs/LEGACY_ISSUES.md` |
+| Debt đang mở | `docs/KNOWN_DEBT.md` |
+| Task đang làm / đã hoàn thành | `docs/tasks/active/`, `docs/tasks/completed/` |
+| Generated/reference có provenance | `docs/generated/`, `docs/references/` |
 
 Gói [`workspace-template/`](./workspace-template/README.md) dành cho một local
 workspace chứa nhiều Git repository độc lập. Nó cài các artifact điều phối ở
@@ -109,9 +110,12 @@ Sau khi cài repo đơn:
 1. Xử lý mọi `Conflicts`, rồi đọc `docs/HARNESS_SETUP.md` trong repo đích.
 2. Ghi revision bằng `git rev-parse HEAD` trước khi chạy command khảo sát.
 3. Khảo sát read-only, xác định bootstrap, verify, start command và mechanical guardrail.
-4. Chạy các command an toàn đã chọn và điền kết quả thực tế vào `docs/PROJECT_BASELINE.md`.
+4. Chạy các command an toàn đã chọn và điền snapshot vào
+   `docs/TAKEOVER_BASELINE.md`, command hiện tại vào `docs/VERIFY.md`.
 5. Chỉ ghi failure được chứng minh tại đúng baseline revision vào `docs/LEGACY_ISSUES.md`.
-6. Tạo ít nhất một kế hoạch trong `docs/exec-plans/active/` nếu còn task đang làm, rồi chạy checker. Sau khi hoàn thành task cuối cùng và chuyển plan sang `completed/`, `active/` có thể trống.
+6. Chỉ tạo `docs/tasks/active/` khi task đạt planning trigger. Trước khi chuyển
+   plan hoàn thành sang `docs/tasks/completed/`, chắt lọc durable knowledge về
+   source of truth phù hợp.
 
 ```bash
 cd /path/to/repo
@@ -166,6 +170,19 @@ tình huống checker, cùng workflow end-to-end trên
 minh build pass trong khi test và lint có legacy failure đã biết; source fixture
 vẫn nguyên vẹn sau khi cài.
 
+Fixture migration tại `tests/fixtures/migration-v1-to-v2/` kiểm tra audit hash,
+completed-plan checksum/count, link v2, durable extraction, conflict và file
+chưa phân loại. Xem
+[`docs/HARNESS_V1_TO_V2_MIGRATION.md`](./docs/HARNESS_V1_TO_V2_MIGRATION.md)
+trước khi xử lý repository v1.
+
+Các path v1 còn xuất hiện trong `repo-template/scripts/harness-check.sh` là alias
+tương thích read-only cho repository chưa migration. Các path v1 trong
+`tests/lib.sh`, `tests/test-installer.sh`, `tests/test-checker.sh` và
+`tests/fixtures/migration-v1-to-v2/` là migration/compatibility fixture có chủ
+ý. Chúng không phải link hướng dẫn hiện hành và không được installer tạo trên
+fresh install.
+
 ## Thư viện SOP
 
 Thư mục [`sops/`](./sops/index.md) biến các sơ đồ của bài viết thành các quy trình vận hành từng bước:
@@ -180,7 +197,7 @@ Thư mục [`sops/`](./sops/index.md) biến các sơ đồ của bài viết th
 - Điểm đầu vào ngắn, tài liệu liên kết sâu hơn
 - Kho lưu trữ là hệ thống ghi chép
 - Kiểm tra cơ học tốt hơn các quy tắc được nhớ
-- Kế hoạch và lịch sử chất lượng nằm bên cạnh mã
+- Kế hoạch active/completed và durable source of truth nằm bên cạnh mã
 - Dọn dẹp và đơn giản hóa là trách nhiệm hạng nhất
 
 Gói này có chủ ý theo quan điểm, nhưng nó vẫn nên được điều chỉnh cho dự án của bạn thay vì sao chép mù quáng.

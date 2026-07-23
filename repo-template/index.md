@@ -1,17 +1,18 @@
-# Mẫu Repo Nâng cao
+# Source Template Repository Harness v2
 
-Sao chép starter này vào một kho lưu trữ thực khi bạn muốn một bề mặt tài liệu agent-first theo phong cách OpenAI thay vì chỉ một harness tối giản.
+Installer dùng template này để tạo đúng bảy core file. Không copy toàn bộ thư
+mục bằng tay và không thêm optional placeholder vào source template.
 
 ## Thứ tự Thiết lập
 
-1. Cài `AGENTS.md`, `ARCHITECTURE.md`, cây `docs/` và checker bằng `install.sh`.
+1. Cài core harness bằng `install.sh`.
 2. Xử lý mọi conflict cài đặt trước khi khảo sát.
-3. Đọc và làm lần lượt toàn bộ `docs/HARNESS_SETUP.md`.
-4. Ghi `docs/PROJECT_BASELINE.md` trước khi phân loại failure.
-5. Điền `docs/LEGACY_ISSUES.md`, `docs/PRODUCT_SENSE.md`, `docs/QUALITY_SCORE.md` và `docs/RELIABILITY.md` từ bằng chứng khảo sát.
+3. Đọc `docs/HARNESS_SETUP.md` khi takeover còn `pending` hoặc `blocked`.
+4. Ghi snapshot vào `docs/TAKEOVER_BASELINE.md` và command hiện tại vào
+   `docs/VERIFY.md`.
+5. Chỉ tạo optional artifact khi có nội dung repo-specific thực.
 6. Chạy `./scripts/harness-check.sh` cho đến khi trả exit `0`.
-7. Khi chưa có task người dùng, `docs/exec-plans/active/` có thể trống.
-8. Giữ các tệp đầu vào ngắn và định tuyến chi tiết vào các tài liệu được liên kết.
+7. Khi không có task cần plan, `docs/tasks/active/` có thể không tồn tại.
 
 ## Mẫu Này Tối ưu hóa Cho
 
@@ -19,7 +20,10 @@ Sao chép starter này vào một kho lưu trữ thực khi bạn muốn một b
 - tiếp quản repo cũ mà không tự ý sửa code yếu hoặc failure có sẵn
 - tiết lộ tiến triển thay vì một tệp hướng dẫn khổng lồ
 - vòng đời kế hoạch rõ ràng
-- theo dõi chất lượng theo thời gian
+- một source of truth cho mỗi concern
 - ranh giới có thể đọc được cho agent và con người
 
-Coi mỗi tệp ở đây là một starter. Thay thế các placeholder, ví dụ và lệnh mẫu bằng các đặc thù dự án thực trước khi dựa vào harness để xử lý task người dùng.
+Optional artifact được định tuyến trong `AGENTS.md`; chúng không phải default
+của template. Repository v1 phải dùng guide
+`docs/HARNESS_V1_TO_V2_MIGRATION.md` ở source repository harness để audit và
+migration mà không mất dữ liệu.

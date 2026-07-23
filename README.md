@@ -82,6 +82,8 @@ Thành phần chính:
 - [`install-from-github.sh`](./install-from-github.sh): bootstrap installer và bộ chọn hai chế độ.
 - [`sops/`](./sops/index.md): các quy trình vận hành chuẩn.
 - [`examples/legacy-project/`](./examples/legacy-project/README.md): fixture minh họa takeover và legacy failure.
+- [`docs/HARNESS_V1_TO_V2_MIGRATION.md`](./docs/HARNESS_V1_TO_V2_MIGRATION.md):
+  guide audit và migration v1 sang v2 không phá hủy dữ liệu.
 
 Harness checker tại `scripts/harness-check.sh` trong repo đích không chạy command
 dự án. Checker trả exit `0` khi cấu hình không có `FAIL`; legacy issue có đủ
@@ -100,3 +102,7 @@ Từ root của repo này:
 
 Xem thêm hướng dẫn đầy đủ, baseline policy và cấu trúc template tại
 [`index.md`](./index.md).
+
+Repository đã có harness v1 nên chạy installer với `--dry-run`, sau đó làm theo
+[guide migration v1 sang v2](./docs/HARNESS_V1_TO_V2_MIGRATION.md). Installer
+chỉ báo inventory; nó không xóa, rename hoặc overwrite artifact migration.

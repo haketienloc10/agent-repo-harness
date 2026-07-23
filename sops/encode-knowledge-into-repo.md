@@ -19,11 +19,13 @@ Làm cho kiến thức ẩn với agent có thể khám phá được trong code
 2. Cho mỗi nguồn, hỏi: đây là kiến trúc, hành vi sản phẩm, chính sách bảo mật, kỳ vọng độ tin cậy, ngữ cảnh kế hoạch hay tài liệu tham khảo?
 3. Mã hóa nó vào artifact repo phù hợp:
    - kiến trúc -> `ARCHITECTURE.md`
-   - hành vi sản phẩm -> `docs/product-specs/`
-   - lý luận thiết kế -> `docs/design-docs/`
-   - trạng thái thực thi -> `docs/exec-plans/`
+   - hành vi sản phẩm -> `docs/specs/`
+   - lý luận thiết kế -> `docs/decisions/`
+   - trạng thái thực thi -> `docs/tasks/`
    - tài liệu tham khảo bên ngoài lặp đi lặp lại -> `docs/references/`
-   - kỳ vọng chất lượng hoặc độ tin cậy -> `docs/QUALITY_SCORE.md` hoặc `docs/RELIABILITY.md`
+   - command và evidence xác minh -> `docs/VERIFY.md`
+   - gap cụ thể -> architecture, decision, legacy issue, known debt hoặc issue
+     tracker phù hợp; không dùng điểm chữ
 4. Thay thế các phát biểu mơ hồ bằng cách diễn đạt hữu ích về mặt vận hành.
 5. Xóa hoặc không dùng các bản sao lỗi thời để repo giữ một sự thật có thể khám phá.
 
