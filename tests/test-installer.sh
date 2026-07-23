@@ -230,6 +230,46 @@ assert_contains 'MIGRATE: docs/design-docs -> docs/decisions' "$TEMP_ROOT/dry-up
 assert_contains 'MIGRATE: docs/exec-plans/completed -> docs/tasks/completed' "$TEMP_ROOT/dry-upgrade-v1.log"
 pass "upgrade dry run creates, deletes, and renames nothing"
 
+completed_repo="$TEMP_ROOT/completed-v1"
+new_git_repo "$completed_repo"
+mkdir -p -- "$completed_repo/docs/exec-plans/completed" "$completed_repo/docs/product-specs"
+printf 'completed plan alpha\n' > "$completed_repo/docs/exec-plans/completed/alpha.md"
+printf 'completed plan beta\n' > "$completed_repo/docs/exec-plans/completed/beta.md"
+printf 'custom quality history\n' > "$completed_repo/docs/QUALITY_SCORE.md"
+printf 'customized sample content\n' > "$completed_repo/docs/product-specs/new-user-onboarding.md"
+completed_count_before="$(find "$completed_repo/docs/exec-plans/completed" -type f | wc -l)"
+completed_checksums_before="$(
+  find "$completed_repo/docs/exec-plans/completed" -type f -print0 |
+    sort -z |
+    xargs -0 sha256sum
+)"
+install_harness "$completed_repo" > "$TEMP_ROOT/completed-v1.log"
+completed_count_after="$(find "$completed_repo/docs/exec-plans/completed" -type f | wc -l)"
+completed_checksums_after="$(
+  find "$completed_repo/docs/exec-plans/completed" -type f -print0 |
+    sort -z |
+    xargs -0 sha256sum
+)"
+[[ "$completed_count_before" -eq "$completed_count_after" ]] || fail "completed plan count decreased during upgrade"
+[[ "$completed_checksums_before" == "$completed_checksums_after" ]] || fail "completed plan content changed during upgrade"
+assert_contains 'MIGRATE: docs/exec-plans/completed -> docs/tasks/completed' "$TEMP_ROOT/completed-v1.log"
+assert_not_contains 'REMOVE_SAMPLE: docs/exec-plans/completed' "$TEMP_ROOT/completed-v1.log"
+assert_contains 'REVIEW_AND_EXTRACT: docs/QUALITY_SCORE.md' "$TEMP_ROOT/completed-v1.log"
+assert_contains 'REMOVE_SAMPLE: docs/product-specs/new-user-onboarding.md' "$TEMP_ROOT/completed-v1.log"
+pass "completed v1 plans remain byte-identical and report their v2 migration target"
+
+mkdir -p -- "$completed_repo/docs/tasks/completed"
+printf 'existing target plan\n' > "$completed_repo/docs/tasks/completed/alpha.md"
+source_completed_before="$(sha256sum "$completed_repo/docs/exec-plans/completed/alpha.md")"
+target_completed_before="$(sha256sum "$completed_repo/docs/tasks/completed/alpha.md")"
+expect_status 2 "$SOURCE_ROOT/install.sh" --target "$completed_repo" > "$TEMP_ROOT/completed-conflict.log"
+source_completed_after="$(sha256sum "$completed_repo/docs/exec-plans/completed/alpha.md")"
+target_completed_after="$(sha256sum "$completed_repo/docs/tasks/completed/alpha.md")"
+[[ "$source_completed_before" == "$source_completed_after" ]] || fail "completed source changed on conflict"
+[[ "$target_completed_before" == "$target_completed_after" ]] || fail "completed target changed on conflict"
+assert_contains 'CONFLICT: docs/exec-plans/completed -> docs/tasks/completed (source and target both preserved)' "$TEMP_ROOT/completed-conflict.log"
+pass "completed source and target conflict preserves both archives"
+
 expect_status 1 "$SOURCE_ROOT/install.sh" --target "$TEMP_ROOT/does-not-exist" > "$TEMP_ROOT/missing.log" 2>&1
 assert_contains 'target does not exist' "$TEMP_ROOT/missing.log"
 pass "installer rejects a missing target"
@@ -259,6 +299,21 @@ assert_contains 'Running repository installer' "$TEMP_ROOT/github.log"
 assert_contains 'docs/HARNESS_SETUP.md' "$TEMP_ROOT/github.log"
 assert_contains '=== PROMPT CHO AGENT ===' "$TEMP_ROOT/github.log"
 pass "GitHub bootstrap installs repository mode without a local harness clone"
+
+github_upgrade="$TEMP_ROOT/github-upgrade"
+new_git_repo "$github_upgrade"
+mkdir -p -- \
+  "$github_upgrade/docs/exec-plans/completed" \
+  "$github_upgrade/docs/tasks/completed"
+printf 'github source completed plan\n' > "$github_upgrade/docs/exec-plans/completed/plan.md"
+printf 'github target completed plan\n' > "$github_upgrade/docs/tasks/completed/plan.md"
+expect_status 2 env GITHUB_ARCHIVE_BASE_URL="file://$TEMP_ROOT" \
+  "$SOURCE_ROOT/install-from-github.sh" --mode repository --target "$github_upgrade" > "$TEMP_ROOT/github-upgrade.log"
+assert_contains 'CONFLICT: docs/exec-plans/completed -> docs/tasks/completed' "$TEMP_ROOT/github-upgrade.log"
+assert_contains 'Bạn đang xử lý một repository có conflict cài đặt hoặc migration.' "$TEMP_ROOT/github-upgrade.log"
+assert_contains 'Giữ nguyên cả source lẫn target' "$TEMP_ROOT/github-upgrade.log"
+assert_contains '=== PROMPT CHO AGENT ===' "$TEMP_ROOT/github-upgrade.log"
+pass "GitHub bootstrap preserves repository installer exit code and actionable migration prompt"
 
 workspace_target="$TEMP_ROOT/workspace-target"
 new_git_repo "$workspace_target/module-a"
