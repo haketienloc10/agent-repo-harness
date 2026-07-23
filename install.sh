@@ -87,6 +87,7 @@ backup_created=false
 created_count=0
 skipped_count=0
 conflict_count=0
+deprecated_count=0
 unsafe_parent=""
 
 validate_relative_path() {
@@ -136,6 +137,53 @@ backup_existing_file() {
 record_conflict() {
   printf 'Conflicts: %s\n' "$1"
   ((conflict_count += 1))
+}
+
+report_deprecated_artifact() {
+  local action="$1"
+  local source_path="$2"
+  local target_path="${3:-}"
+
+  [[ -e "$TARGET_DIR/$source_path" || -L "$TARGET_DIR/$source_path" ]] || return
+
+  if [[ -n "$target_path" && ( -e "$TARGET_DIR/$target_path" || -L "$TARGET_DIR/$target_path" ) ]]; then
+    printf 'CONFLICT: %s -> %s (source and target both preserved)\n' "$source_path" "$target_path"
+    ((conflict_count += 1))
+  elif [[ -n "$target_path" ]]; then
+    printf '%s: %s -> %s\n' "$action" "$source_path" "$target_path"
+  else
+    printf '%s: %s\n' "$action" "$source_path"
+  fi
+  ((deprecated_count += 1))
+}
+
+report_deprecated_inventory() {
+  printf '\nDeprecated harness v1 inventory:\n'
+
+  report_deprecated_artifact MIGRATE "docs/RELIABILITY.md" "docs/VERIFY.md"
+  report_deprecated_artifact MIGRATE "docs/PROJECT_BASELINE.md" "docs/TAKEOVER_BASELINE.md"
+  report_deprecated_artifact MIGRATE "docs/product-specs" "docs/specs"
+  report_deprecated_artifact MIGRATE "docs/design-docs" "docs/decisions"
+  report_deprecated_artifact MIGRATE "docs/exec-plans/active" "docs/tasks/active"
+  report_deprecated_artifact MIGRATE "docs/exec-plans/completed" "docs/tasks/completed"
+  report_deprecated_artifact MIGRATE "docs/exec-plans/tech-debt-tracker.md" "docs/KNOWN_DEBT.md"
+
+  report_deprecated_artifact REVIEW_AND_EXTRACT "docs/QUALITY_SCORE.md"
+  report_deprecated_artifact REVIEW_AND_EXTRACT "docs/PRODUCT_SENSE.md"
+  report_deprecated_artifact REVIEW_AND_EXTRACT "docs/DESIGN.md"
+  report_deprecated_artifact REVIEW_AND_EXTRACT "docs/FRONTEND.md"
+  report_deprecated_artifact REVIEW_AND_EXTRACT "docs/PLANS.md"
+
+  report_deprecated_artifact REMOVE_SAMPLE "docs/product-specs/index.md"
+  report_deprecated_artifact REMOVE_SAMPLE "docs/product-specs/new-user-onboarding.md"
+  report_deprecated_artifact REMOVE_SAMPLE "docs/generated/db-schema.md"
+  report_deprecated_artifact REMOVE_SAMPLE "docs/references/design-system-reference-llms.txt"
+  report_deprecated_artifact REMOVE_SAMPLE "docs/references/nixpacks-llms.txt"
+  report_deprecated_artifact REMOVE_SAMPLE "docs/references/uv-llms.txt"
+
+  if ((deprecated_count == 0)); then
+    printf 'None detected.\n'
+  fi
 }
 
 copy_managed_file() {
@@ -248,6 +296,8 @@ while IFS= read -r relative_path || [[ -n "$relative_path" ]]; do
       ;;
   esac
 done < "$MANIFEST_PATH"
+
+report_deprecated_inventory
 
 printf '\nSummary: Created=%d Skipped=%d Conflicts=%d\n' "$created_count" "$skipped_count" "$conflict_count"
 if [[ "$backup_created" == true ]]; then
