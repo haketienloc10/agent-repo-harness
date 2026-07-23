@@ -501,6 +501,8 @@ check_optional_indexed_documents() {
   local index_file="$directory/index.md"
   local file
   local relative_file
+  local target
+  local resolved_target
   local invalid=0
   local count=0
 
@@ -525,6 +527,23 @@ check_optional_indexed_documents() {
   fi
   if [[ -f "$index_file" ]]; then
     check_optional_placeholders "$check" "$index_file" || invalid=1
+    while IFS= read -r target; do
+      [[ -n "$target" ]] || continue
+      target="${target#\](}"
+      target="${target#<}"
+      target="${target%%>*}"
+      target="${target%%\#*}"
+      target="${target%%\?*}"
+      [[ -n "$target" ]] || continue
+      case "$target" in
+        /*|*://*|mailto:*|tel:*) continue ;;
+      esac
+      resolved_target="$directory/$target"
+      if [[ ! -f "$resolved_target" ]]; then
+        report FAIL "$check" "$relative_dir/index.md points to missing document '$target'."
+        invalid=1
+      fi
+    done < <(grep -oE '\]\((<)?[^)>[:space:]]+' "$index_file" 2>/dev/null || true)
   fi
   if ((invalid == 0)); then
     report PASS "$check" "$relative_dir contains $count indexed document(s) with the required schema."
