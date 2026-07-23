@@ -1,59 +1,66 @@
 # ARCHITECTURE.md
 
-Tệp này là bản đồ cấp cao nhất của hệ thống. Nó nên ngắn gọn và trỏ đến các tài liệu sâu hơn khi cần.
+File này mô tả kiến trúc thực đang tồn tại ở revision hiện tại. Không dùng nó
+để áp một mô hình layer chung lên mọi repository, và không mô tả target
+architecture như thể đã được triển khai.
 
-Trong installation v2, bằng chứng bootstrap, build, test, lint, start và golden
-journey thuộc `docs/VERIFY.md`; snapshot tiếp quản thuộc
-`docs/TAKEOVER_BASELINE.md` sau khi takeover bắt đầu.
+Chỉ ghi claim có bằng chứng từ source, configuration, runtime, test hoặc tài liệu
+dự án. Đề xuất chưa triển khai phải được ghi rõ là proposal trong
+`docs/decisions/` hoặc active plan phù hợp.
 
-## Hình dạng Hệ thống
+## System shape
 
-- Sản phẩm: `{{PRODUCT_NAME}}`
-- Workflow người dùng chính: `{{PRIMARY_USER_WORKFLOW}}`
-- Bề mặt runtime: `{{RUNTIME_SURFACES}}`
-- Nguồn sự thật cho hành vi sản phẩm: `docs/product-specs/`
+- Sản phẩm hoặc thư viện: `{{PRODUCT_NAME}}`
+- Primary workflow: `{{PRIMARY_USER_WORKFLOW}}`
+- Runtime surface: `{{RUNTIME_SURFACES}}`
+- Entrypoint: `{{SYSTEM_ENTRY_POINTS}}`
+- Source of truth cho behavior: `{{BEHAVIOR_SOURCE_PATH}}`
 
-## Bản đồ Domain
+## Component và domain map
 
-| Domain | Mục đích | Điểm đầu vào chính | Spec liên quan |
-|--------|---------|----------------------|----------------|
-| `{{DOMAIN_1_NAME}}` | `{{DOMAIN_1_OWNERSHIP}}` | `{{DOMAIN_1_ENTRY_POINTS}}` | `{{DOMAIN_1_SPEC_PATH}}` |
-| `{{DOMAIN_2_NAME}}` | `{{DOMAIN_2_OWNERSHIP}}` | `{{DOMAIN_2_ENTRY_POINTS}}` | `{{DOMAIN_2_SPEC_PATH}}` |
+Mô tả các boundary thực sự có trong repo. Component có thể là package, service,
+process, module, job, frontend surface hoặc data store; không ép chúng vào một
+layer taxonomy cố định.
 
-## Mô hình Lớp
+| Component/domain | Trách nhiệm hiện tại | Entrypoint hoặc path | Phụ thuộc chính | Evidence |
+|---|---|---|---|---|
+| `{{COMPONENT_1_NAME}}` | `{{COMPONENT_1_OWNERSHIP}}` | `{{COMPONENT_1_ENTRY_POINTS}}` | `{{COMPONENT_1_DEPENDENCIES}}` | `{{COMPONENT_1_EVIDENCE}}` |
+| `{{COMPONENT_2_NAME}}` | `{{COMPONENT_2_OWNERSHIP}}` | `{{COMPONENT_2_ENTRY_POINTS}}` | `{{COMPONENT_2_DEPENDENCIES}}` | `{{COMPONENT_2_EVIDENCE}}` |
 
-Sử dụng mô hình định hướng cố định để agent không tự phát minh ra kiến trúc ad hoc:
+## Dependency và data flow hiện tại
 
-`Types -> Config -> Repo -> Service -> Runtime -> UI`
+Ghi hướng gọi, data ownership, state transition và boundary giữa process đúng
+như implementation hiện tại. Nếu dependency direction chưa rõ hoặc đang bị vi
+phạm, mô tả cả evidence và impact thay vì viết một rule lý tưởng như hiện trạng.
 
-Các mối quan tâm xuyên suốt nên đi vào qua các ranh giới provider hoặc adapter rõ ràng thay vì tiếp cận trực tiếp qua các lớp.
+```text
+{{CURRENT_DEPENDENCY_OR_DATA_FLOW}}
+```
 
-## Quy tắc Phụ thuộc Cứng
+## External boundary
 
-- Các lớp thấp hơn không được phụ thuộc vào các lớp cao hơn.
-- UI không được bỏ qua các hợp đồng runtime hoặc service.
-- Truy cập dữ liệu phải đi qua các repository hoặc adapter tương đương.
-- Các tiện ích dùng chung phải là chung chung và không được tích lũy logic domain.
-- Các phụ thuộc mới nên được chứng minh trong kế hoạch hoặc tài liệu thiết kế phù hợp.
+| Boundary | Owner/caller | Contract và failure mode | Evidence |
+|---|---|---|---|
+| `{{EXTERNAL_BOUNDARY_1}}` | `{{EXTERNAL_BOUNDARY_1_OWNER}}` | `{{EXTERNAL_BOUNDARY_1_CONTRACT}}` | `{{EXTERNAL_BOUNDARY_1_EVIDENCE}}` |
 
-## Giao diện Xuyên suốt
+Ghi rõ auth, persistence, queue, external API, filesystem hoặc platform boundary
+khi chúng thực sự tồn tại. Security detail thuộc `docs/SECURITY.md` nếu concern
+đó đủ lớn để cần artifact riêng.
 
-| Mối quan tâm | Ranh giới được phê duyệt | Ghi chú |
-|--------|-------------------|---------|
-| Logging và tracing | `{{LOGGING_BOUNDARY}}` | `{{LOGGING_RULES}}` |
-| Auth | `{{AUTH_BOUNDARY}}` | `{{AUTH_RULES}}` |
-| External API | `{{EXTERNAL_API_BOUNDARY}}` | `{{EXTERNAL_API_RULES}}` |
-| Feature flags | `{{FEATURE_FLAG_BOUNDARY}}` | `{{FEATURE_FLAG_OWNERSHIP}}` |
+## Invariant đã được thực thi
 
-## Điểm Nóng Hiện tại
+Chỉ liệt kê invariant có enforcement hoặc evidence cụ thể.
 
-- `{{CHANGE_SAFETY_HOTSPOT}}`
-- `{{WEAK_BOUNDARY_OR_FLAKY_TEST_AREA}}`
+| Invariant | Enforcement/evidence |
+|---|---|
+| `{{ARCHITECTURE_INVARIANT}}` | `{{ARCHITECTURE_INVARIANT_EVIDENCE}}` |
 
-## Danh sách Kiểm tra Thay đổi
+## Hotspot và giới hạn hiểu biết
 
-Khi bạn chạm vào mã liên quan đến kiến trúc:
+- Hotspot hiện tại: `{{CHANGE_SAFETY_HOTSPOT}}`
+- Boundary yếu hoặc khu vực khó verify: `{{WEAK_BOUNDARY_OR_UNVERIFIED_AREA}}`
+- Điều chưa được xác nhận: `{{ARCHITECTURE_EVIDENCE_LIMIT}}`
 
-1. Cập nhật tệp này nếu bản đồ domain hoặc ranh giới được phép thay đổi.
-2. Cập nhật tài liệu thiết kế liên quan trong `docs/design-docs/` nếu lý luận thay đổi.
-3. Thêm hoặc cập nhật kiểm tra có thể thực thi nếu quy tắc nên được thực thi cơ học.
+Không biến một target architecture, refactor mong muốn hoặc assumption chưa kiểm
+chứng thành current architecture. Khi implementation thay đổi, cập nhật bản đồ
+này cùng evidence và cập nhật `docs/VERIFY.md` nếu command hoặc guardrail đổi.
