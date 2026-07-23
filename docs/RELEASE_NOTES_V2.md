@@ -84,4 +84,3 @@ và sau bằng nhau; checksum phải giữ nguyên hoặc mọi thay đổi link
   conflict target hoặc artifact chưa phân loại.
 - Nếu cần revert release version, có thể giữ checker compatibility v1/v2 để
   repository đã thử v2 không bị khóa trong khi điều tra.
-
