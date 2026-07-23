@@ -8,6 +8,12 @@ REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd -P)"
 MANIFEST_PATH="$REPO_ROOT/.harness-required-files"
 fail_count=0
 
+# Reporting
+
+record_failure() {
+  ((fail_count += 1))
+}
+
 report() {
   local status="$1"
   local check="$2"
@@ -15,9 +21,20 @@ report() {
 
   printf '%s [%s] %s\n' "$status" "$check" "$message"
   if [[ "$status" == "FAIL" ]]; then
-    ((fail_count += 1))
+    record_failure
   fi
 }
+
+report_summary() {
+  if ((fail_count > 0)); then
+    printf 'FAIL [summary] Harness configuration has %d failure(s).\n' "$fail_count"
+    return 1
+  fi
+
+  printf 'PASS [summary] Harness configuration is valid.\n'
+}
+
+# Metadata parsing
 
 trim_value() {
   local value="$1"
@@ -316,9 +333,4 @@ check_product_spec_index
 check_quality_score
 check_guardrail
 
-if ((fail_count > 0)); then
-  printf 'FAIL [summary] Harness configuration has %d failure(s).\n' "$fail_count"
-  exit 1
-fi
-
-printf 'PASS [summary] Harness configuration is valid.\n'
+report_summary
