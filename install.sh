@@ -246,26 +246,12 @@ install_metadata() {
     return
   fi
   if [[ -e "$destination" || -L "$destination" ]]; then
-    if [[ "$overwrite" != true ]]; then
+    if [[ -f "$destination" && ! -L "$destination" ]]; then
       printf 'Skipped: %s (installation metadata preserved)\n' "$relative_path"
       ((skipped_count += 1))
       return
     fi
-    if [[ -d "$destination" && ! -L "$destination" ]]; then
-      record_conflict "$relative_path (existing directory cannot be overwritten as a file)"
-      return
-    fi
-    if [[ "$dry_run" == true ]]; then
-      printf 'Created: %s (would overwrite; backup: %s)\n' "$relative_path" "$backup_root/$relative_path"
-      ((created_count += 1))
-      return
-    fi
-    backup_existing_file "$relative_path"
-    rm -f -- "$destination" || fail "cannot replace: $relative_path"
-    mkdir -p -- "$(dirname -- "$destination")" || fail "cannot create metadata directory."
-    printf '%s\n' "$metadata" > "$destination" || fail "cannot write installation metadata."
-    printf 'Created: %s (overwritten; backup: %s)\n' "$relative_path" "$backup_root/$relative_path"
-    ((created_count += 1))
+    record_conflict "$relative_path (existing non-file path preserved)"
     return
   fi
 
@@ -304,11 +290,29 @@ if [[ "$backup_created" == true ]]; then
   printf 'Backups: %s\n' "$backup_root"
 fi
 
+takeover_status="pending"
+metadata_path="$TARGET_DIR/.harness/installation.json"
+if [[ -f "$metadata_path" ]]; then
+  detected_status="$(sed -n 's/^[[:space:]]*"takeover_status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$metadata_path" | head -n 1)"
+  if [[ -z "$detected_status" ]]; then
+    detected_status="$(sed -n 's/^[[:space:]]*"baseline_status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$metadata_path" | head -n 1)"
+  fi
+  [[ -z "$detected_status" ]] || takeover_status="$detected_status"
+fi
+
 printf '\nNext steps:\n'
 if ((conflict_count > 0)); then
-  printf '1. Review and resolve every Conflicts entry before takeover.\n'
-  printf '2. Do not use --overwrite until each existing file and backup has been reviewed.\n'
-  printf '3. After resolving conflicts, read docs/HARNESS_SETUP.md and follow every step in order.\n'
+  printf '1. Review and resolve every Conflicts entry before takeover; for CONFLICT inventory entries, source and target were both preserved.\n'
+  printf '2. Compare and migrate content explicitly. Do not delete either path until its data is accounted for.\n'
+elif ((deprecated_count > 0)); then
+  printf '1. Review the deprecated inventory and handle each MIGRATE, REVIEW_AND_EXTRACT, and REMOVE_SAMPLE item explicitly.\n'
+  printf '2. Extract durable knowledge before removing samples; do not delete or rename user data automatically.\n'
+elif [[ "$takeover_status" == "complete" ]]; then
+  printf '1. Takeover is already complete; do not restart the takeover workflow.\n'
+  printf '2. Run ./scripts/harness-check.sh to verify the preserved repository state.\n'
+elif [[ "$takeover_status" == "blocked" ]]; then
+  printf '1. Takeover is blocked; read blocker_reason in .harness/installation.json.\n'
+  printf '2. Resolve the recorded blocker, then continue docs/HARNESS_SETUP.md and run ./scripts/harness-check.sh.\n'
 else
   printf '1. Open docs/HARNESS_SETUP.md in the target repository.\n'
   printf '2. Follow the takeover workflow in order; do not start user product tasks yet.\n'

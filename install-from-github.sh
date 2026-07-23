@@ -318,6 +318,23 @@ install_workspace_template() {
 
 print_agent_prompt() {
   local status="$1"
+  local takeover_status="pending"
+  local metadata_path="$TARGET_DIR/.harness/installation.json"
+  local detected_status=""
+  local has_deprecated=false
+
+  if [[ -f "$metadata_path" ]]; then
+    detected_status="$(sed -n 's/^[[:space:]]*"takeover_status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$metadata_path" | head -n 1)"
+    if [[ -z "$detected_status" ]]; then
+      detected_status="$(sed -n 's/^[[:space:]]*"baseline_status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$metadata_path" | head -n 1)"
+    fi
+    [[ -z "$detected_status" ]] || takeover_status="$detected_status"
+  fi
+  if [[ -e "$TARGET_DIR/docs/RELIABILITY.md" || -e "$TARGET_DIR/docs/PROJECT_BASELINE.md" || \
+    -e "$TARGET_DIR/docs/product-specs" || -e "$TARGET_DIR/docs/design-docs" || \
+    -e "$TARGET_DIR/docs/exec-plans" ]]; then
+    has_deprecated=true
+  fi
 
   printf '\n=== PROMPT CHO AGENT ===\n'
   if [[ "$dry_run" == true ]]; then
@@ -350,6 +367,30 @@ Hãy thực hiện đúng thứ tự sau:
 
 Không bắt đầu task sản phẩm trước khi hoàn tất các bước trên.
 PROMPT
+  elif ((status == 2)); then
+    cat <<'PROMPT'
+Bạn đang xử lý một repository có conflict cài đặt hoặc migration.
+
+Hãy review từng `CONFLICT` và `Conflicts` trong inventory phía trên. Giữ nguyên cả source lẫn target, so sánh nội dung và lập mapping migration rõ ràng trước mọi thay đổi. Không dùng cleanup hoặc `--overwrite` để thay thế dữ liệu chưa được phân loại.
+PROMPT
+  elif [[ "$has_deprecated" == true ]]; then
+    cat <<'PROMPT'
+Bạn đang nâng cấp một repository có artifact harness v1.
+
+Hãy xử lý inventory phía trên theo từng action: chuyển nội dung `MIGRATE` sang target được chỉ rõ, chắt lọc tri thức lâu bền từ `REVIEW_AND_EXTRACT`, và chỉ xử lý `REMOVE_SAMPLE` sau khi xác nhận đó thực sự là sample chưa tùy biến. Không tự xóa, rename hoặc ghi đè source. Với completed plans, giữ nguyên nội dung và chuyển đích sang `docs/tasks/completed/`.
+PROMPT
+  elif [[ "$takeover_status" == "complete" ]]; then
+    cat <<'PROMPT'
+Repository đã có `takeover_status: complete`.
+
+Không chạy lại takeover và không đưa metadata về pending. Chạy `./scripts/harness-check.sh` để xác nhận trạng thái được bảo toàn, rồi tiếp tục task theo routing trong `AGENTS.md`.
+PROMPT
+  elif [[ "$takeover_status" == "blocked" ]]; then
+    cat <<'PROMPT'
+Repository đang có `takeover_status: blocked`.
+
+Đọc `blocker_reason` trong `.harness/installation.json`, xác minh blocker còn hiệu lực, xử lý đúng blocker đó, rồi tiếp tục quy trình trong `docs/HARNESS_SETUP.md` và chạy `./scripts/harness-check.sh`.
+PROMPT
   else
     cat <<'PROMPT'
 Bạn đang hoàn tất việc thiết lập harness cho một Git repository.
@@ -359,9 +400,9 @@ Hãy thực hiện đúng thứ tự sau:
 2. Đọc toàn bộ `docs/HARNESS_SETUP.md` và tuân thủ quy trình takeover trong đó.
 3. Bắt đầu bằng khảo sát read-only, ghi nhận baseline revision và không sửa source code trong giai đoạn khảo sát.
 4. Xác định command bootstrap, build, test, lint, type-check, start và các guardrail cơ học từ bằng chứng trong repo.
-5. Chạy các command an toàn đã chọn và cập nhật kết quả thực tế vào `docs/PROJECT_BASELINE.md`.
+5. Chạy các command an toàn đã chọn và cập nhật kết quả thực tế vào `docs/TAKEOVER_BASELINE.md`.
 6. Chỉ ghi failure được chứng minh tại baseline revision vào `docs/LEGACY_ISSUES.md`; regression mới phải được sửa, không được hợp thức hóa thành legacy issue hoặc technical debt.
-7. Tạo execution-plan artifact trong `docs/exec-plans/active/` khi còn công việc takeover cần theo dõi.
+7. Tạo execution-plan artifact trong `docs/tasks/active/` khi còn công việc takeover cần theo dõi.
 8. Chạy `./scripts/harness-check.sh`.
 9. Chỉ báo repository là ready khi checker trả exit `0`; nếu bị chặn, hãy nêu chính xác artifact, bằng chứng hoặc quyết định còn thiếu.
 
