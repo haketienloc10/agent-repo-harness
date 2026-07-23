@@ -5,6 +5,8 @@ Sử dụng chỉ mục này như bản đồ có thể khám phá của lịch 
 ## Đã Chấp nhận
 
 - `core-beliefs.md`: niềm tin vận hành agent-first và chuẩn mực dự án lâu bền
+- `harness-v2-migration-decisions.md`: cấu trúc đích, mapping migration và
+  invariant tương thích của Harness Structure v2
 
 ## Đề xuất
 
