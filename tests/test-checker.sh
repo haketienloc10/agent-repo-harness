@@ -93,6 +93,83 @@ assert_contains 'PASS [takeover-status] Takeover is complete.' "$TEMP_ROOT/v2-co
 assert_contains 'PASS [summary] Harness configuration is valid.' "$TEMP_ROOT/v2-complete.log"
 pass "valid v2 complete repository passes with v2 path aliases"
 
+optional_absent="$TEMP_ROOT/optional-absent"
+make_v2_repo "$optional_absent" pending
+optional_absent_revision="$(git -C "$optional_absent" rev-parse HEAD)"
+write_v2_metadata "$optional_absent" complete "$optional_absent_revision" "2026-07-23T10:00:00Z"
+sed -i '\|^docs/SECURITY.md$|d' "$optional_absent/.harness-required-files"
+rm -f -- "$optional_absent/docs/SECURITY.md"
+expect_status 0 "$optional_absent/scripts/harness-check.sh" > "$TEMP_ROOT/optional-absent.log"
+assert_not_contains 'PASS [specs]' "$TEMP_ROOT/optional-absent.log"
+assert_not_contains 'PASS [decisions]' "$TEMP_ROOT/optional-absent.log"
+assert_not_contains 'PASS [ui]' "$TEMP_ROOT/optional-absent.log"
+assert_not_contains 'PASS [security]' "$TEMP_ROOT/optional-absent.log"
+assert_not_contains '[quality-score]' "$TEMP_ROOT/optional-absent.log"
+pass "absent v2 specs decisions UI and security are silent and quality scores are ignored"
+
+optional_contracts="$TEMP_ROOT/optional-contracts"
+cp -a -- "$optional_absent" "$optional_contracts"
+mkdir -p -- "$optional_contracts/docs/specs" "$optional_contracts/docs/decisions"
+printf '%s\n' \
+  '# Specs' '' '[Greeting API](greeting.md)' \
+  > "$optional_contracts/docs/specs/index.md"
+printf '%s\n' \
+  '# Greeting API' \
+  '## Scope' 'The `GET /greeting` endpoint.' \
+  '## Observable behavior' 'Returns the configured greeting as JSON.' \
+  '## Acceptance criteria' '`./project-checks/test.sh` verifies the response.' \
+  '## Out of scope' 'Authentication behavior.' \
+  '## Update trigger' 'Refresh when `GET /greeting` changes.' \
+  > "$optional_contracts/docs/specs/greeting.md"
+printf '%s\n' \
+  '# Decisions' '' '[JSON response](0001-json-response.md)' \
+  > "$optional_contracts/docs/decisions/index.md"
+printf '%s\n' \
+  '# Return JSON' \
+  '## Status' 'Accepted' \
+  '## Context' '`GET /greeting` has command-line and browser consumers.' \
+  '## Decision' 'Return `application/json` from `src/greeting`.' \
+  '## Consequences' 'Consumers parse a stable object shape.' \
+  '## Verification' '`./project-checks/test.sh` checks the content type.' \
+  > "$optional_contracts/docs/decisions/0001-json-response.md"
+printf '%s\n' \
+  '# UI contract' \
+  '## Surfaces' '`web/greeting.html` renders the greeting.' \
+  '## States' 'Loading, success, and HTTP error states are distinct.' \
+  '## Interactions' 'The retry button calls `GET /greeting` once.' \
+  '## Accessibility' 'Status changes use `role="status"`.' \
+  '## Responsive rules' 'Below 40rem the action occupies one grid column.' \
+  > "$optional_contracts/docs/UI.md"
+printf '%s\n' \
+  '# Security contract' \
+  '## Assets' 'The greeting configuration is server-owned.' \
+  '## Trust boundaries' '`GET /greeting` treats query input as untrusted.' \
+  '## Threats' 'Unescaped values could create reflected HTML.' \
+  '## Controls' '`src/greeting` JSON-encodes every response.' \
+  '## Verification' '`./project-checks/test.sh` covers hostile input.' \
+  > "$optional_contracts/docs/SECURITY.md"
+expect_status 0 "$optional_contracts/scripts/harness-check.sh" > "$TEMP_ROOT/optional-contracts.log"
+assert_contains 'PASS [specs]' "$TEMP_ROOT/optional-contracts.log"
+assert_contains 'PASS [decisions]' "$TEMP_ROOT/optional-contracts.log"
+assert_contains 'PASS [ui]' "$TEMP_ROOT/optional-contracts.log"
+assert_contains 'PASS [security]' "$TEMP_ROOT/optional-contracts.log"
+pass "valid v2 specs decisions UI and security contracts pass"
+
+invalid_spec="$TEMP_ROOT/invalid-spec"
+cp -a -- "$optional_contracts" "$invalid_spec"
+printf '\n{{DEFINE_ACCEPTANCE}}\n' >> "$invalid_spec/docs/specs/greeting.md"
+expect_status 1 "$invalid_spec/scripts/harness-check.sh" > "$TEMP_ROOT/invalid-spec.log"
+assert_contains 'FAIL [specs] docs/specs/greeting.md:13:{{DEFINE_ACCEPTANCE}}' "$TEMP_ROOT/invalid-spec.log"
+pass "optional spec placeholder fails with its path and line"
+
+generic_ui="$TEMP_ROOT/generic-ui"
+cp -a -- "$optional_contracts" "$generic_ui"
+printf '\nFollow best practices and make it responsive.\n' >> "$generic_ui/docs/UI.md"
+expect_status 0 "$generic_ui/scripts/harness-check.sh" > "$TEMP_ROOT/generic-ui.log"
+assert_contains 'WARN [ui] docs/UI.md contains generic best-practice language' "$TEMP_ROOT/generic-ui.log"
+assert_contains 'replace it with a repository-specific rule' "$TEMP_ROOT/generic-ui.log"
+pass "generic UI guidance warns with an actionable correction"
+
 malformed="$TEMP_ROOT/malformed-json"
 make_v1_repo "$malformed"
 printf '%s\n' '{"schema": "harness/installation/v2",' > "$malformed/.harness/installation.json"

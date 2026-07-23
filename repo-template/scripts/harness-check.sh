@@ -159,6 +159,48 @@ is_configured_value() {
   [[ -n "$value" && ! "$value" =~ \{\{[A-Z0-9_]+\}\} ]]
 }
 
+heading_line() {
+  local file="$1"
+  local heading="$2"
+
+  grep -niEm1 "^[[:space:]]*#{1,6}[[:space:]]+${heading}[[:space:]]*$" "$file" 2>/dev/null |
+    cut -d: -f1
+}
+
+check_required_headings() {
+  local check="$1"
+  local relative_path="$2"
+  shift 2
+  local file="$REPO_ROOT/$relative_path"
+  local heading
+  local invalid=0
+
+  for heading in "$@"; do
+    if [[ -z "$(heading_line "$file" "$heading")" ]]; then
+      report FAIL "$check" "$relative_path:1 must contain a '$heading' heading with repository-specific content."
+      invalid=1
+    fi
+  done
+
+  return "$invalid"
+}
+
+check_optional_placeholders() {
+  local check="$1"
+  local file="$2"
+  local relative_path="${file#"$REPO_ROOT/"}"
+  local match
+  local found=0
+
+  while IFS= read -r match; do
+    [[ -n "$match" ]] || continue
+    report FAIL "$check" "$relative_path:$match"
+    found=1
+  done < <(grep -nE '\{\{[A-Z0-9_]+\}\}|TBD|TODO|fill[[:space:]]+this|lorem[[:space:]]+ipsum' "$file" 2>/dev/null || true)
+
+  return "$found"
+}
+
 # Path resolution
 
 resolve_alias_path() {
@@ -440,15 +482,101 @@ check_product_spec_index() {
   fi
 }
 
-check_quality_score() {
-  local file="$REPO_ROOT/docs/QUALITY_SCORE.md"
+check_optional_indexed_documents() {
+  local check="$1"
+  local relative_dir="$2"
+  shift 2
+  local directory="$REPO_ROOT/$relative_dir"
+  local index_file="$directory/index.md"
+  local file
+  local relative_file
+  local invalid=0
+  local count=0
 
-  [[ -f "$file" ]] || return
-  if grep -Eq '^\|.*\|[[:space:]]*`?[A-D]`?[[:space:]]*\|' "$file"; then
-    report PASS quality-score "docs/QUALITY_SCORE.md contains at least one initialized A-D score."
-  else
-    report FAIL quality-score "docs/QUALITY_SCORE.md must contain at least one initialized A-D score in a table."
+  [[ -d "$directory" ]] || return
+  while IFS= read -r -d '' file; do
+    ((count += 1))
+    relative_file="${file#"$directory/"}"
+    check_optional_placeholders "$check" "$file" || invalid=1
+    check_required_headings "$check" "${file#"$REPO_ROOT/"}" "$@" || invalid=1
+    if [[ ! -f "$index_file" ]]; then
+      report FAIL "$check" "$relative_dir/index.md:1 is required when $relative_dir contains documents; add links to each document."
+      invalid=1
+    elif ! grep -Eq "\]\((<)?(\\./)?${relative_file//./\\.}([#?][^)]*)?(>)?\)" "$index_file"; then
+      report FAIL "$check" "${file#"$REPO_ROOT/"}:1 is not linked from $relative_dir/index.md; add it to the index."
+      invalid=1
+    fi
+  done < <(find "$directory" -maxdepth 1 -type f -name '*.md' ! -name 'index.md' -print0)
+
+  if ((count == 0)); then
+    report FAIL "$check" "$relative_dir:1 exists but contains no document; add a Markdown document or remove the empty optional directory."
+    return
   fi
+  if [[ -f "$index_file" ]]; then
+    check_optional_placeholders "$check" "$index_file" || invalid=1
+  fi
+  if ((invalid == 0)); then
+    report PASS "$check" "$relative_dir contains $count indexed document(s) with the required schema."
+  fi
+}
+
+check_optional_specs() {
+  [[ "$installation_schema" == "v2" ]] || return
+  check_optional_indexed_documents specs docs/specs \
+    "Scope" "Observable behavior" "Acceptance criteria" "Out of scope" "Update trigger"
+}
+
+check_optional_decisions() {
+  local directory="$REPO_ROOT/docs/decisions"
+  local file
+  local relative_path
+  local status
+
+  [[ "$installation_schema" == "v2" ]] || return
+  check_optional_indexed_documents decisions docs/decisions \
+    "Status" "Context" "Decision" "Consequences" "Verification(/Enforcement)?"
+  [[ -d "$directory" ]] || return
+  while IFS= read -r -d '' file; do
+    relative_path="${file#"$REPO_ROOT/"}"
+    status="$(sed -n '/^[[:space:]]*#[#]*[[:space:]]*[Ss]tatus[[:space:]]*$/,/^[[:space:]]*#/p' "$file" |
+      grep -Eim1 'Accepted|Proposed|Deprecated|Superseded|Rejected' || true)"
+    if [[ -z "$status" ]]; then
+      report FAIL decisions "$relative_path:$(heading_line "$file" "Status") has invalid ADR status; use Proposed, Accepted, Deprecated, Superseded, or Rejected."
+    fi
+  done < <(find "$directory" -maxdepth 1 -type f -name '*.md' ! -name 'index.md' -print0)
+}
+
+check_optional_ui_security() {
+  local relative_path
+  local file
+  local check
+  local invalid
+
+  [[ "$installation_schema" == "v2" ]] || return
+  for relative_path in docs/UI.md docs/SECURITY.md; do
+    file="$REPO_ROOT/$relative_path"
+    [[ -f "$file" ]] || continue
+    if grep -Fxq -- "$relative_path" "$MANIFEST_PATH" 2>/dev/null; then
+      continue
+    fi
+    check="${relative_path##*/}"
+    check="${check%.md}"
+    check="${check,,}"
+    invalid=0
+    check_optional_placeholders "$check" "$file" || invalid=1
+    if [[ "$relative_path" == "docs/UI.md" ]]; then
+      check_required_headings "$check" "$relative_path" \
+        "Surfaces?" "States?" "Interactions?" "Accessibility" "Responsive rules?" || invalid=1
+    else
+      check_required_headings "$check" "$relative_path" \
+        "Assets?" "Trust boundaries?" "Threats?" "Controls?" "Verification" || invalid=1
+    fi
+    if grep -Eqi 'follow best practices|use industry standards|be accessible|ensure security|make it responsive' "$file"; then
+      report WARN "$check" "$relative_path contains generic best-practice language; replace it with a repository-specific rule, boundary, path, or verification command."
+    elif ((invalid == 0)); then
+      report PASS "$check" "$relative_path contains the required repository-specific contract."
+    fi
+  done
 }
 
 check_guardrail() {
@@ -522,7 +650,9 @@ check_active_plan
 check_markdown_links
 check_legacy_issues
 check_product_spec_index
-check_quality_score
+check_optional_specs
+check_optional_decisions
+check_optional_ui_security
 check_guardrail
 check_installation_state
 
