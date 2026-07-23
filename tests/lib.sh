@@ -99,6 +99,19 @@ configure_harness() {
     >> "$target/docs/QUALITY_SCORE.md"
 
   if grep -q '"schema": "harness/installation/v2"' "$target/.harness/installation.json" 2>/dev/null; then
+    printf '%s\n' \
+      '# Takeover baseline' \
+      '' \
+      '- Ngày baseline: 2026-07-17' \
+      "- Git revision: \`$revision\`" \
+      > "$target/docs/TAKEOVER_BASELINE.md"
+    printf '%s\n' \
+      '' \
+      '- Bootstrap: `true`' \
+      '- Xác minh: `./project-checks/build.sh`' \
+      '- Khởi động app hoặc service: Not applicable — fixture không có service.' \
+      '- Mechanical guardrail: `./scripts/harness-check.sh`' \
+      >> "$target/docs/VERIFY.md"
     write_v2_metadata "$target" complete "$revision" "2026-07-17T00:00:00Z"
   fi
 }
@@ -113,6 +126,13 @@ make_configured_repo() {
   git -C "$target" commit -qm baseline
   revision="$(git -C "$target" rev-parse HEAD)"
   install_harness "$target" >/dev/null
+  while IFS= read -r file || [[ -n "$file" ]]; do
+    [[ -z "$file" || "$file" == \#* || "$file" == ".harness-required-files" || \
+      "$file" == ".harness/installation.json" ]] && continue
+    mkdir -p -- "$target/$(dirname -- "$file")"
+    cp -p -- "$SOURCE_ROOT/repo-template/$file" "$target/$file"
+  done < "$SOURCE_ROOT/.harness-required-files"
+  cp -- "$SOURCE_ROOT/.harness-required-files" "$target/.harness-required-files"
   printf '%s\n' \
     '{' \
     '  "installed_at": "2026-07-17T00:00:00Z",' \
@@ -153,6 +173,8 @@ make_v2_repo() {
   local reason="${5:-}"
 
   make_configured_repo "$target"
+  cp -- "$target/docs/RELIABILITY.md" "$target/docs/VERIFY.md"
+  cp -- "$target/docs/PROJECT_BASELINE.md" "$target/docs/TAKEOVER_BASELINE.md"
   write_v2_metadata "$target" "$status" "$baseline_revision" "$completed_at" "$reason"
 }
 

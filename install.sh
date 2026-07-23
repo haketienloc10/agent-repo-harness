@@ -5,8 +5,8 @@ set -o pipefail
 
 HARNESS_VERSION="1.0.0"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-MANIFEST_PATH="$SCRIPT_DIR/.harness-required-files"
 TEMPLATE_DIR="$SCRIPT_DIR/repo-template"
+MANIFEST_PATH="$TEMPLATE_DIR/.harness-required-files"
 HARNESS_SOURCE="${HARNESS_SOURCE:-local}"
 if [[ -z "${HARNESS_REF:-}" ]]; then
   HARNESS_REF="$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || printf 'working-tree')"

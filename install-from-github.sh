@@ -380,8 +380,9 @@ if [[ "$install_mode" == "workspace" ]]; then
   set -e
 else
   [[ -f "$source_dir/install.sh" ]] || fail "downloaded archive does not contain install.sh."
-  [[ -f "$source_dir/.harness-required-files" ]] || fail "downloaded archive is missing .harness-required-files."
   [[ -d "$source_dir/repo-template" ]] || fail "downloaded archive is missing repo-template."
+  [[ -f "$source_dir/repo-template/.harness-required-files" ]] || \
+    fail "downloaded archive is missing repo-template/.harness-required-files."
 
   repository_args=(--target "$TARGET_DIR")
   [[ "$dry_run" == true ]] && repository_args+=(--dry-run)
