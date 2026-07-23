@@ -116,6 +116,35 @@ make_v1_repo() {
   make_configured_repo "$1"
 }
 
+write_v2_metadata() {
+  local target="$1"
+  local status="$2"
+  local baseline_revision="${3:-}"
+  local completed_at="${4:-}"
+  local reason="${5:-}"
+
+  printf '%s\n' \
+    '{' \
+    '  "schema": "harness/installation/v2",' \
+    "  \"takeover_status\": \"$status\"," \
+    "  \"baseline_revision\": \"$baseline_revision\"," \
+    "  \"takeover_completed_at\": \"$completed_at\"," \
+    "  \"blocker_reason\": \"$reason\"" \
+    '}' \
+    > "$target/.harness/installation.json"
+}
+
+make_v2_repo() {
+  local target="$1"
+  local status="$2"
+  local baseline_revision="${3:-}"
+  local completed_at="${4:-}"
+  local reason="${5:-}"
+
+  make_configured_repo "$target"
+  write_v2_metadata "$target" "$status" "$baseline_revision" "$completed_at" "$reason"
+}
+
 expect_status() {
   local expected="$1"
   shift
