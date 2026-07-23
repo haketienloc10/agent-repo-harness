@@ -170,6 +170,54 @@ assert_contains 'WARN [ui] docs/UI.md contains generic best-practice language' "
 assert_contains 'replace it with a repository-specific rule' "$TEMP_ROOT/generic-ui.log"
 pass "generic UI guidance warns with an actionable correction"
 
+optional_lifecycle="$TEMP_ROOT/optional-lifecycle"
+cp -a -- "$optional_contracts" "$optional_lifecycle"
+printf '%s\n' \
+  '# Known debt' '' \
+  '### `DEBT-001`: Cache invalidation remains manual' '' \
+  '- Evidence: `src/cache` has no invalidation hook.' \
+  '- Risk: stale greetings can remain visible for five minutes.' \
+  '- Owner / tracking: platform team, issue `CACHE-12`.' \
+  '- Review trigger: revisit when `src/cache` gains write events.' \
+  '- Status: Open' \
+  > "$optional_lifecycle/docs/KNOWN_DEBT.md"
+mkdir -p -- "$optional_lifecycle/docs/tasks/active" \
+  "$optional_lifecycle/docs/tasks/completed/history"
+printf '%s\n' \
+  '# Cache invalidation task' \
+  '## Goal' 'Automate greeting cache invalidation.' \
+  '## Scope' '`src/cache` and its tests.' \
+  '## Current state' 'The invalidation hook is being implemented.' \
+  '## Next action' 'Add the write-event test.' \
+  '## Verification' 'Run `./project-checks/test.sh`.' \
+  '## Durable knowledge to extract' 'Update `docs/decisions/0001-json-response.md` if the boundary changes.' \
+  > "$optional_lifecycle/docs/tasks/active/cache.md"
+printf '%s\n' \
+  '# JSON migration' \
+  '## Final outcome' '`GET /greeting` now returns JSON.' \
+  '## Verification evidence' '`./project-checks/test.sh` exited 0.' \
+  '## Durable extraction' 'The contract is in `docs/specs/greeting.md` and decision 0001.' \
+  > "$optional_lifecycle/docs/tasks/completed/json-migration.md"
+printf '{{ARCHIVE_ATTACHMENT_IS_NOT_A_PLAN}}\n' \
+  > "$optional_lifecycle/docs/tasks/completed/history/attachment.md"
+expect_status 0 "$optional_lifecycle/scripts/harness-check.sh" > "$TEMP_ROOT/optional-lifecycle.log"
+assert_contains 'PASS [known-debt] DEBT-001' "$TEMP_ROOT/optional-lifecycle.log"
+assert_contains 'PASS [active-plan] docs/tasks/active contains 1 plan(s)' "$TEMP_ROOT/optional-lifecycle.log"
+assert_contains 'PASS [completed-plan] docs/tasks/completed contains 1 plan(s)' "$TEMP_ROOT/optional-lifecycle.log"
+assert_not_contains 'ARCHIVE_ATTACHMENT_IS_NOT_A_PLAN' "$TEMP_ROOT/optional-lifecycle.log"
+pass "valid debt and task lifecycle pass without traversing nested completed history"
+
+invalid_lifecycle="$TEMP_ROOT/invalid-lifecycle"
+cp -a -- "$optional_lifecycle" "$invalid_lifecycle"
+sed -i 's/^- Status: Accepted$/- Status: Resolved/' "$invalid_lifecycle/docs/LEGACY_ISSUES.md"
+sed -i 's/^- Status: Open$/- Status: Resolved/' "$invalid_lifecycle/docs/KNOWN_DEBT.md"
+sed -i '/^## Next action$/,+1d' "$invalid_lifecycle/docs/tasks/active/cache.md"
+expect_status 1 "$invalid_lifecycle/scripts/harness-check.sh" > "$TEMP_ROOT/invalid-lifecycle.log"
+assert_contains 'keeps resolved LEGACY-001 as open state' "$TEMP_ROOT/invalid-lifecycle.log"
+assert_contains 'keeps resolved DEBT-001 as open debt' "$TEMP_ROOT/invalid-lifecycle.log"
+assert_contains "docs/tasks/active/cache.md:1 must contain a 'Next action' heading" "$TEMP_ROOT/invalid-lifecycle.log"
+pass "resolved state and incomplete active plans fail with actionable locations"
+
 malformed="$TEMP_ROOT/malformed-json"
 make_v1_repo "$malformed"
 printf '%s\n' '{"schema": "harness/installation/v2",' > "$malformed/.harness/installation.json"

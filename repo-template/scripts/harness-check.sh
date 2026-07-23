@@ -410,6 +410,9 @@ check_legacy_issues() {
   baseline_file="$REPO_ROOT/$(resolve_alias_path docs/PROJECT_BASELINE.md docs/TAKEOVER_BASELINE.md)"
   [[ -f "$file" ]] || return
   [[ -f "$baseline_file" ]] && baseline_revision="$(field_value "$baseline_file" "Git revision")"
+  if [[ "$installation_schema" == "v2" ]]; then
+    check_optional_placeholders legacy-issues "$file" || true
+  fi
   mapfile -t headings < <(grep -nE '^###[[:space:]]+' "$file" || true)
 
   if ((${#headings[@]} == 0)); then
@@ -448,7 +451,15 @@ check_legacy_issues() {
     done
 
     value="$(trim_value "$(grep -m1 -E '^[[:space:]]*-[[:space:]]+Status:[[:space:]]*' <<< "$section" || true)")"
-    if [[ "$value" != "Accepted" && "$value" != "In progress" && "$value" != "Resolved" ]]; then
+    if [[ "$installation_schema" == "v2" ]]; then
+      if [[ "$value" == "Resolved" ]]; then
+        report FAIL legacy-issues "docs/LEGACY_ISSUES.md:$line_number keeps resolved $id as open state; remove it and preserve resolution evidence in Git or the completed plan."
+        invalid=1
+      elif [[ "$value" != "Accepted" && "$value" != "In progress" ]]; then
+        report FAIL legacy-issues "$id has invalid Status '$value'; v2 allows only Accepted or In progress."
+        invalid=1
+      fi
+    elif [[ "$value" != "Accepted" && "$value" != "In progress" && "$value" != "Resolved" ]]; then
       report FAIL legacy-issues "$id has invalid Status '$value'."
       invalid=1
     fi
@@ -579,6 +590,96 @@ check_optional_ui_security() {
   done
 }
 
+check_known_debt() {
+  local file="$REPO_ROOT/docs/KNOWN_DEBT.md"
+  local heading_data
+  local -a headings=()
+  local index
+  local line_number
+  local next_line
+  local section
+  local heading
+  local id
+  local value
+  local invalid
+  local heading_pattern='^###[[:space:]]+`?(DEBT-[0-9]{3})`?[[:space:]]*:'
+
+  [[ "$installation_schema" == "v2" && -f "$file" ]] || return
+  check_optional_placeholders known-debt "$file" || true
+  mapfile -t headings < <(grep -nE '^###[[:space:]]+' "$file" || true)
+  if ((${#headings[@]} == 0)); then
+    report FAIL known-debt "docs/KNOWN_DEBT.md:1 exists without an open DEBT-NNN item; remove the optional file or document current debt."
+    return
+  fi
+
+  for ((index = 0; index < ${#headings[@]}; index += 1)); do
+    heading_data="${headings[$index]}"
+    line_number="${heading_data%%:*}"
+    heading="${heading_data#*:}"
+    if ((index + 1 < ${#headings[@]})); then
+      next_line="${headings[$((index + 1))]%%:*}"
+      section="$(sed -n "${line_number},$((next_line - 1))p" "$file")"
+    else
+      section="$(sed -n "${line_number},\$p" "$file")"
+    fi
+    if [[ "$heading" =~ $heading_pattern ]]; then
+      id="${BASH_REMATCH[1]}"
+    else
+      report FAIL known-debt "docs/KNOWN_DEBT.md:$line_number has a debt heading without an ID matching DEBT-NNN."
+      continue
+    fi
+
+    invalid=0
+    for label in "Evidence" "Risk" "Owner / tracking" "Review trigger"; do
+      value="$(trim_value "$(grep -m1 -E "^[[:space:]]*-[[:space:]]+${label}:[[:space:]]*" <<< "$section" || true)")"
+      if ! is_configured_value "$value"; then
+        report FAIL known-debt "docs/KNOWN_DEBT.md:$line_number $id has no configured '$label'; add evidence and an accountable review path."
+        invalid=1
+      fi
+    done
+    value="$(trim_value "$(grep -m1 -E '^[[:space:]]*-[[:space:]]+Status:[[:space:]]*' <<< "$section" || true)")"
+    if [[ "$value" =~ ^(Resolved|Closed|Done)$ ]]; then
+      report FAIL known-debt "docs/KNOWN_DEBT.md:$line_number keeps resolved $id as open debt; remove it and preserve resolution evidence in Git or the completed plan."
+      invalid=1
+    fi
+    if ((invalid == 0)); then
+      report PASS known-debt "$id records evidence, risk, ownership, and a review trigger."
+    fi
+  done
+}
+
+check_task_plans() {
+  local lifecycle="$1"
+  local directory="$REPO_ROOT/docs/tasks/$lifecycle"
+  shift
+  local file
+  local count=0
+  local invalid=0
+
+  [[ "$installation_schema" == "v2" && -d "$directory" ]] || return
+  while IFS= read -r -d '' file; do
+    ((count += 1))
+    check_optional_placeholders "$lifecycle-plan" "$file" || invalid=1
+    check_required_headings "$lifecycle-plan" "${file#"$REPO_ROOT/"}" "$@" || invalid=1
+  done < <(find "$directory" -maxdepth 1 -type f -name '*.md' ! -name 'index.md' -print0)
+
+  if [[ "$lifecycle" == "active" && $count -eq 0 ]]; then
+    return
+  fi
+  if ((count > 0 && invalid == 0)); then
+    report PASS "$lifecycle-plan" "docs/tasks/$lifecycle contains $count plan(s) with the required lifecycle evidence."
+  fi
+}
+
+check_optional_tasks() {
+  check_task_plans active \
+    "Goal" "Scope" "Current state" "Next action" "Verification" "Durable knowledge to extract"
+  # Completed plans are retained. This is a shallow, heading-only validation:
+  # nested attachments and linked history are not traversed on every checker run.
+  check_task_plans completed \
+    "Final outcome" "Verification evidence" "Durable extraction"
+}
+
 check_guardrail() {
   local relative_path
   local file
@@ -653,6 +754,8 @@ check_product_spec_index
 check_optional_specs
 check_optional_decisions
 check_optional_ui_security
+check_known_debt
+check_optional_tasks
 check_guardrail
 check_installation_state
 
