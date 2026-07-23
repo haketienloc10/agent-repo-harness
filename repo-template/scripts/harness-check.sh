@@ -7,11 +7,22 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd -P)"
 MANIFEST_PATH="$REPO_ROOT/.harness-required-files"
 fail_count=0
+blocked_count=0
+pending_count=0
+installation_schema="v1"
+takeover_status=""
+baseline_revision_metadata=""
+takeover_completed_at=""
+blocker_reason=""
 
 # Reporting
 
 record_failure() {
   ((fail_count += 1))
+}
+
+record_blocker() {
+  ((blocked_count += 1))
 }
 
 report() {
@@ -22,6 +33,8 @@ report() {
   printf '%s [%s] %s\n' "$status" "$check" "$message"
   if [[ "$status" == "FAIL" ]]; then
     record_failure
+  elif [[ "$status" == "BLOCKED" ]]; then
+    record_blocker
   fi
 }
 
@@ -31,10 +44,97 @@ report_summary() {
     return 1
   fi
 
+  if ((blocked_count > 0)); then
+    printf 'BLOCKED [summary] Harness takeover has %d blocker(s).\n' "$blocked_count"
+    return 1
+  fi
+
+  if ((pending_count > 0)); then
+    printf 'WARN [summary] Harness takeover is pending and is not ready for user tasks.\n'
+    return 1
+  fi
+
   printf 'PASS [summary] Harness configuration is valid.\n'
 }
 
 # Metadata parsing
+
+parse_installation_metadata() {
+  local file="$REPO_ROOT/.harness/installation.json"
+  local parser=""
+  local output
+  local -a values=()
+
+  [[ -f "$file" ]] || return
+
+  if command -v python3 >/dev/null 2>&1; then
+    parser="python3"
+    output="$(python3 - "$file" <<'PY' 2>&1
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as stream:
+        data = json.load(stream)
+    if not isinstance(data, dict):
+        raise ValueError("top-level JSON value must be an object")
+    keys = ("schema", "takeover_status", "baseline_revision", "takeover_completed_at", "blocker_reason")
+    values = []
+    for key in keys:
+        value = data.get(key, "")
+        if not isinstance(value, str):
+            raise ValueError(f"{key} must be a string")
+        if "\n" in value or "\r" in value:
+            raise ValueError(f"{key} must not contain a newline")
+        values.append(value)
+    print("\n".join(values))
+except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as error:
+    print(error, file=sys.stderr)
+    sys.exit(1)
+PY
+)" || {
+      report FAIL installation-metadata ".harness/installation.json is invalid JSON or has invalid fields ($parser: $output); repair or reinstall the metadata file."
+      return
+    }
+  elif command -v ruby >/dev/null 2>&1; then
+    parser="ruby"
+    output="$(ruby -rjson -e '
+      data = JSON.parse(File.read(ARGV[0]))
+      raise "top-level JSON value must be an object" unless data.is_a?(Hash)
+      keys = %w[schema takeover_status baseline_revision takeover_completed_at blocker_reason]
+      puts keys.map { |key|
+        value = data.fetch(key, "")
+        raise "#{key} must be a string" unless value.is_a?(String)
+        raise "#{key} must not contain a newline" if value.match?(/[\r\n]/)
+        value
+      }
+    ' "$file" 2>&1)" || {
+      report FAIL installation-metadata ".harness/installation.json is invalid JSON or has invalid fields ($parser: $output); repair or reinstall the metadata file."
+      return
+    }
+  else
+    report FAIL installation-metadata "Cannot parse .harness/installation.json safely; install python3 or ruby, then rerun the checker."
+    return
+  fi
+
+  mapfile -t values <<< "$output"
+  while ((${#values[@]} < 5)); do values+=(""); done
+  if [[ -z "${values[0]}" ]]; then
+    installation_schema="v1"
+    return
+  fi
+  if [[ "${values[0]}" != "harness/installation/v2" ]]; then
+    report FAIL installation-metadata "Unsupported installation schema '${values[0]}'; expected harness/installation/v2 or legacy v1 metadata without schema."
+    installation_schema="invalid"
+    return
+  fi
+
+  installation_schema="v2"
+  takeover_status="${values[1]}"
+  baseline_revision_metadata="${values[2]}"
+  takeover_completed_at="${values[3]}"
+  blocker_reason="${values[4]}"
+}
 
 trim_value() {
   local value="$1"
@@ -59,14 +159,49 @@ is_configured_value() {
   [[ -n "$value" && ! "$value" =~ \{\{[A-Z0-9_]+\}\} ]]
 }
 
+# Path resolution
+
+resolve_alias_path() {
+  local v1_path="$1"
+  local v2_path="$2"
+
+  if [[ "$installation_schema" == "v2" ]]; then
+    if [[ -f "$REPO_ROOT/$v2_path" ]]; then
+      printf '%s' "$v2_path"
+    else
+      printf '%s' "$v1_path"
+    fi
+  elif [[ -f "$REPO_ROOT/$v1_path" ]]; then
+    printf '%s' "$v1_path"
+  else
+    printf '%s' "$v2_path"
+  fi
+}
+
+resolve_manifest_path() {
+  case "$1" in
+    docs/RELIABILITY.md|docs/VERIFY.md)
+      resolve_alias_path docs/RELIABILITY.md docs/VERIFY.md
+      ;;
+    docs/PROJECT_BASELINE.md|docs/TAKEOVER_BASELINE.md)
+      resolve_alias_path docs/PROJECT_BASELINE.md docs/TAKEOVER_BASELINE.md
+      ;;
+    *)
+      printf '%s' "$1"
+      ;;
+  esac
+}
+
 emit_harness_files() {
-  local path
+  local path resolved_path
   local active_dir="$REPO_ROOT/docs/exec-plans/active"
 
   if [[ -f "$MANIFEST_PATH" ]]; then
     while IFS= read -r path || [[ -n "$path" ]]; do
-      [[ -z "$path" || "$path" == \#* || ! -f "$REPO_ROOT/$path" ]] && continue
-      printf '%s\0' "$REPO_ROOT/$path"
+      [[ -z "$path" || "$path" == \#* ]] && continue
+      resolved_path="$(resolve_manifest_path "$path")"
+      [[ -f "$REPO_ROOT/$resolved_path" ]] || continue
+      printf '%s\0' "$REPO_ROOT/$resolved_path"
     done < "$MANIFEST_PATH"
   fi
 
@@ -76,7 +211,7 @@ emit_harness_files() {
 }
 
 check_required_files() {
-  local path
+  local path resolved_path
   local missing=0
 
   if [[ ! -f "$MANIFEST_PATH" ]]; then
@@ -86,7 +221,8 @@ check_required_files() {
 
   while IFS= read -r path || [[ -n "$path" ]]; do
     [[ -z "$path" || "$path" == \#* ]] && continue
-    if [[ ! -f "$REPO_ROOT/$path" ]]; then
+    resolved_path="$(resolve_manifest_path "$path")"
+    if [[ ! -f "$REPO_ROOT/$resolved_path" ]]; then
       report FAIL required-files "$path is missing."
       missing=1
     fi
@@ -118,40 +254,46 @@ check_placeholders() {
 }
 
 check_baseline() {
-  local file="$REPO_ROOT/docs/PROJECT_BASELINE.md"
+  local relative_path
+  local file
   local date_value
   local revision_value
 
+  relative_path="$(resolve_alias_path docs/PROJECT_BASELINE.md docs/TAKEOVER_BASELINE.md)"
+  file="$REPO_ROOT/$relative_path"
   [[ -f "$file" ]] || return
   date_value="$(field_value "$file" "Ngày baseline")"
   revision_value="$(field_value "$file" "Git revision")"
 
   if [[ "$date_value" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-    report PASS baseline-date "docs/PROJECT_BASELINE.md records baseline date $date_value."
+    report PASS baseline-date "$relative_path records baseline date $date_value."
   else
-    report FAIL baseline-date "docs/PROJECT_BASELINE.md must contain '- Ngày baseline: YYYY-MM-DD'."
+    report FAIL baseline-date "$relative_path must contain '- Ngày baseline: YYYY-MM-DD'."
   fi
 
   if [[ "$revision_value" =~ ^[0-9a-fA-F]{7,64}$ ]]; then
-    report PASS baseline-revision "docs/PROJECT_BASELINE.md records revision $revision_value."
+    report PASS baseline-revision "$relative_path records revision $revision_value."
   else
-    report FAIL baseline-revision "docs/PROJECT_BASELINE.md must contain a 7-64 character hexadecimal Git revision."
+    report FAIL baseline-revision "$relative_path must contain a 7-64 character hexadecimal Git revision."
   fi
 }
 
 check_commands() {
-  local file="$REPO_ROOT/docs/RELIABILITY.md"
+  local relative_path
+  local file
   local label
   local value
   local invalid=0
 
+  relative_path="$(resolve_alias_path docs/RELIABILITY.md docs/VERIFY.md)"
+  file="$REPO_ROOT/$relative_path"
   [[ -f "$file" ]] || return
   for label in "Bootstrap" "Xác minh" "Khởi động app hoặc service"; do
     value="$(field_value "$file" "$label")"
     if is_configured_value "$value"; then
-      report PASS commands "docs/RELIABILITY.md configures $label."
+      report PASS commands "$relative_path configures $label."
     else
-      report FAIL commands "docs/RELIABILITY.md has no configured value for '$label'."
+      report FAIL commands "$relative_path has no configured value for '$label'."
       invalid=1
     fi
   done
@@ -209,7 +351,7 @@ check_markdown_links() {
 
 check_legacy_issues() {
   local file="$REPO_ROOT/docs/LEGACY_ISSUES.md"
-  local baseline_file="$REPO_ROOT/docs/PROJECT_BASELINE.md"
+  local baseline_file
   local baseline_revision=""
   local heading_data
   local -a headings=()
@@ -223,6 +365,7 @@ check_legacy_issues() {
   local invalid
   local heading_pattern='^###[[:space:]]+`?(LEGACY-[0-9]{3})`?[[:space:]]*:'
 
+  baseline_file="$REPO_ROOT/$(resolve_alias_path docs/PROJECT_BASELINE.md docs/TAKEOVER_BASELINE.md)"
   [[ -f "$file" ]] || return
   [[ -f "$baseline_file" ]] && baseline_revision="$(field_value "$baseline_file" "Git revision")"
   mapfile -t headings < <(grep -nE '^###[[:space:]]+' "$file" || true)
@@ -309,19 +452,68 @@ check_quality_score() {
 }
 
 check_guardrail() {
-  local file="$REPO_ROOT/docs/RELIABILITY.md"
+  local relative_path
+  local file
   local value
 
+  relative_path="$(resolve_alias_path docs/RELIABILITY.md docs/VERIFY.md)"
+  file="$REPO_ROOT/$relative_path"
   [[ -f "$file" ]] || return
   value="$(field_value "$file" "Mechanical guardrail")"
   if is_configured_value "$value"; then
-    report PASS mechanical-guardrail "docs/RELIABILITY.md records a mechanical guardrail."
+    report PASS mechanical-guardrail "$relative_path records a mechanical guardrail."
   else
-    report FAIL mechanical-guardrail "docs/RELIABILITY.md must configure '- Mechanical guardrail: ...'."
+    report FAIL mechanical-guardrail "$relative_path must configure '- Mechanical guardrail: ...'."
   fi
 }
 
+# Installation state validation
+
+check_installation_state() {
+  local baseline_path
+  local baseline_revision_file
+  local failures_before="$fail_count"
+
+  [[ "$installation_schema" == "v2" ]] || return
+  case "$takeover_status" in
+    pending)
+      report WARN takeover-status "Takeover is pending; the repository is not ready for user tasks."
+      ((pending_count += 1))
+      ;;
+    blocked)
+      if is_configured_value "$blocker_reason"; then
+        report BLOCKED takeover-status "$blocker_reason"
+      else
+        report FAIL installation-metadata "takeover_status 'blocked' requires a specific blocker_reason."
+      fi
+      ;;
+    complete)
+      baseline_path="$(resolve_alias_path docs/PROJECT_BASELINE.md docs/TAKEOVER_BASELINE.md)"
+      if [[ ! "$baseline_revision_metadata" =~ ^[0-9a-fA-F]{7,64}$ ]]; then
+        report FAIL installation-metadata "takeover_status 'complete' requires baseline_revision as a 7-64 character hexadecimal Git revision."
+      elif [[ ! -f "$REPO_ROOT/$baseline_path" ]]; then
+        report FAIL installation-metadata "takeover_status 'complete' requires docs/TAKEOVER_BASELINE.md or docs/PROJECT_BASELINE.md."
+      else
+        baseline_revision_file="$(field_value "$REPO_ROOT/$baseline_path" "Git revision")"
+        if [[ "$baseline_revision_metadata" != "$baseline_revision_file" ]]; then
+          report FAIL installation-metadata "baseline_revision '$baseline_revision_metadata' does not match '$baseline_revision_file' in $baseline_path."
+        fi
+      fi
+      if [[ ! "$takeover_completed_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$ ]]; then
+        report FAIL installation-metadata "takeover_status 'complete' requires takeover_completed_at as an RFC 3339 timestamp."
+      fi
+      if ((fail_count == failures_before)); then
+        report PASS takeover-status "Takeover is complete."
+      fi
+      ;;
+    *)
+      report FAIL installation-metadata "Invalid takeover_status '$takeover_status'; expected pending, blocked, or complete."
+      ;;
+  esac
+}
+
 printf 'Harness check: %s\n' "$REPO_ROOT"
+parse_installation_metadata
 check_required_files
 check_placeholders
 check_baseline
@@ -332,5 +524,6 @@ check_legacy_issues
 check_product_spec_index
 check_quality_score
 check_guardrail
+check_installation_state
 
 report_summary
