@@ -129,6 +129,37 @@ Checker trả exit `0` khi cấu hình harness không có `FAIL`. Một legacy i
 được báo `BASELINE`, nên failure sẵn có không làm checker fail. Checker không chạy
 command dự án.
 
+## Observability công việc và friction
+
+Harness quan sát công việc agent theo milestone thông qua execution plan, không
+ghi timeline từng tool call. Khi task có planning trigger,
+`docs/tasks/active/<task>.md` cho biết phase hiện tại, kết quả gần nhất, blocker,
+next action và verification. Task nhỏ không có trigger vẫn không phải tạo plan.
+
+Friction là trở ngại có bằng chứng khiến agent phải đoán, bị blocked, tăng đáng
+kể chi phí điều tra hoặc verification, lặp thao tác thủ công, không tìm được
+source of truth hoặc không thể chứng minh kết quả. Friction đủ nghiêm trọng tự
+trở thành planning trigger; khó chịu nhỏ, xảy ra một lần và không ảnh hưởng kết
+quả thì không tạo artifact.
+
+Section `Friction` là optional. Khi tồn tại, mỗi mục dùng ID `FR-NNN` và phải có:
+
+- `Evidence`;
+- `Impact`;
+- `Disposition`;
+- `Extraction target` khi disposition là `extracted-to-*` hoặc
+  `follow-up-task`.
+
+Active plan có thể dùng disposition `open`. Trước khi dùng `mv` chuyển plan sang
+`docs/tasks/completed/`, mọi friction phải được xử lý hoặc định tuyến sang source
+of truth, checker, test, follow-up task hoặc quyết định `accepted-no-action`.
+Completed plan không được giữ friction `open`.
+
+Checker chỉ kiểm tra friction khi section này thật sự tồn tại. Không có friction
+thì không tạo section rỗng và không làm checker phát sinh yêu cầu hình thức mới.
+`docs/VERIFY.md` tiếp tục là nguồn sự thật cho command và evidence xác minh hiện
+tại; nó không phải task log.
+
 ## Takeover workflow cho workspace
 
 Sau khi cài workspace:
