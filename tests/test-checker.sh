@@ -58,6 +58,7 @@ make_v2_repo "$blocked" blocked "" "" "Upstream credentials are unavailable."
 expect_status 1 "$blocked/scripts/harness-check.sh" > "$TEMP_ROOT/v2-blocked.log"
 assert_contains 'BLOCKED [takeover-status] Upstream credentials are unavailable.' "$TEMP_ROOT/v2-blocked.log"
 assert_contains 'BLOCKED [summary] Harness takeover has 1 blocker(s).' "$TEMP_ROOT/v2-blocked.log"
+assert_not_contains 'FAIL [takeover-status]' "$TEMP_ROOT/v2-blocked.log"
 pass "v2 blocked repository reports its blocker"
 
 complete_without_baseline="$TEMP_ROOT/v2-complete-without-baseline"
@@ -153,6 +154,8 @@ assert_contains 'PASS [specs]' "$TEMP_ROOT/optional-contracts.log"
 assert_contains 'PASS [decisions]' "$TEMP_ROOT/optional-contracts.log"
 assert_contains 'PASS [ui]' "$TEMP_ROOT/optional-contracts.log"
 assert_contains 'PASS [security]' "$TEMP_ROOT/optional-contracts.log"
+assert_contains 'BASELINE [legacy-issues] LEGACY-001 is documented with evidence at revision' \
+  "$TEMP_ROOT/optional-contracts.log"
 pass "valid v2 specs decisions UI and security contracts pass"
 
 invalid_spec="$TEMP_ROOT/invalid-spec"
@@ -248,6 +251,49 @@ expect_status 1 "$invalid_sources/scripts/harness-check.sh" > "$TEMP_ROOT/invali
 assert_contains "docs/generated/greeting-schema.md:1 has no configured 'Applies to' metadata" "$TEMP_ROOT/invalid-sources.log"
 assert_contains 'FAIL [references] docs/references/http-semantics.md:8:{{REFERENCE_VERSION}}' "$TEMP_ROOT/invalid-sources.log"
 pass "untraceable generated and reference artifacts fail with actionable locations"
+
+new_regression="$TEMP_ROOT/new-regression-as-legacy"
+cp -a -- "$optional_contracts" "$new_regression"
+sed -i 's/^- Baseline revision:.*/- Baseline revision: `deadbeef`/' \
+  "$new_regression/docs/LEGACY_ISSUES.md"
+expect_status 1 "$new_regression/scripts/harness-check.sh" > "$TEMP_ROOT/new-regression.log"
+assert_contains "LEGACY-001 references baseline revision 'deadbeef', expected" \
+  "$TEMP_ROOT/new-regression.log"
+assert_contains 'Không đổi regression mới thành legacy issue hoặc debt' \
+  "$SOURCE_ROOT/repo-template/AGENTS.md"
+assert_contains 'Không đổi regression thành legacy issue hoặc debt' \
+  "$SOURCE_ROOT/repo-template/docs/HARNESS_SETUP.md"
+pass "a failure from a newer revision cannot be classified as baseline legacy"
+
+unknown_observation="$TEMP_ROOT/unknown-observation"
+cp -a -- "$optional_contracts" "$unknown_observation"
+mkdir -p -- "$unknown_observation/docs/tasks/active"
+printf '%s\n' \
+  '# Investigate intermittent greeting failure' \
+  '## Goal' 'Determine the failure origin without classifying it as legacy or debt.' \
+  '## Scope' '`GET /greeting` observation and reproduction evidence.' \
+  '## Current state' 'Observation: origin is unknown and no baseline reproduction exists.' \
+  '## Next action' 'Reproduce at the takeover revision and current revision.' \
+  '## Verification' 'Compare `./project-checks/test.sh` output at both revisions.' \
+  '## Durable knowledge to extract' 'Route confirmed behavior to specs or confirmed baseline failure to legacy.' \
+  > "$unknown_observation/docs/tasks/active/investigate-greeting.md"
+expect_status 0 "$unknown_observation/scripts/harness-check.sh" > "$TEMP_ROOT/unknown-observation.log"
+assert_contains 'PASS [active-plan] docs/tasks/active contains 1 plan(s)' \
+  "$TEMP_ROOT/unknown-observation.log"
+pass "unknown failure origin remains an observation in an active plan"
+
+resolved_legacy_removed="$TEMP_ROOT/resolved-legacy-removed"
+cp -a -- "$optional_contracts" "$resolved_legacy_removed"
+sed -i '\|^docs/LEGACY_ISSUES.md$|d' "$resolved_legacy_removed/.harness-required-files"
+rm -f -- "$resolved_legacy_removed/docs/LEGACY_ISSUES.md"
+expect_status 0 "$resolved_legacy_removed/scripts/harness-check.sh" \
+  > "$TEMP_ROOT/resolved-legacy-removed.log"
+assert_not_contains '[legacy-issues]' "$TEMP_ROOT/resolved-legacy-removed.log"
+pass "resolved legacy need not remain in optional state"
+
+assert_not_contains 'check_quality_score' "$SOURCE_ROOT/repo-template/scripts/harness-check.sh"
+assert_not_contains '[quality-score]' "$TEMP_ROOT/optional-contracts.log"
+pass "v2 checker has no quality-score validator"
 
 malformed="$TEMP_ROOT/malformed-json"
 make_v1_repo "$malformed"
