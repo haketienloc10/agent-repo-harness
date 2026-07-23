@@ -160,6 +160,76 @@ assert_contains 'Mode: overwrite with backup' "$TEMP_ROOT/overwrite.log"
 assert_contains 'Created: AGENTS.md (overwritten; backup:' "$TEMP_ROOT/overwrite.log"
 pass "overwrite creates a recoverable backup"
 
+upgrade_repo="$TEMP_ROOT/upgrade-v1"
+new_git_repo "$upgrade_repo"
+mkdir -p -- \
+  "$upgrade_repo/.harness" \
+  "$upgrade_repo/docs/exec-plans/active" \
+  "$upgrade_repo/docs/product-specs" \
+  "$upgrade_repo/docs/specs"
+printf 'custom v1 agents\n' > "$upgrade_repo/AGENTS.md"
+printf 'custom reliability evidence\n' > "$upgrade_repo/docs/RELIABILITY.md"
+printf 'custom active plan\n' > "$upgrade_repo/docs/exec-plans/active/custom-plan.md"
+printf 'custom product spec\n' > "$upgrade_repo/docs/product-specs/custom.md"
+printf 'existing v2 product spec\n' > "$upgrade_repo/docs/specs/custom.md"
+write_v2_metadata "$upgrade_repo" complete "abc123" "2026-07-17T00:00:00Z"
+deprecated_before="$(
+  sha256sum \
+    "$upgrade_repo/docs/RELIABILITY.md" \
+    "$upgrade_repo/docs/exec-plans/active/custom-plan.md" \
+    "$upgrade_repo/docs/product-specs/custom.md" \
+    "$upgrade_repo/docs/specs/custom.md"
+)"
+metadata_before="$(sha256sum "$upgrade_repo/.harness/installation.json")"
+expect_status 2 "$SOURCE_ROOT/install.sh" --target "$upgrade_repo" --overwrite > "$TEMP_ROOT/upgrade-v1.log"
+deprecated_after="$(
+  sha256sum \
+    "$upgrade_repo/docs/RELIABILITY.md" \
+    "$upgrade_repo/docs/exec-plans/active/custom-plan.md" \
+    "$upgrade_repo/docs/product-specs/custom.md" \
+    "$upgrade_repo/docs/specs/custom.md"
+)"
+metadata_after="$(sha256sum "$upgrade_repo/.harness/installation.json")"
+[[ "$deprecated_before" == "$deprecated_after" ]] || fail "overwrite changed a deprecated or archive artifact"
+[[ "$metadata_before" == "$metadata_after" ]] || fail "overwrite changed complete installation metadata"
+upgrade_backup="$(find "$upgrade_repo/.harness/backups" -type f -path '*/AGENTS.md' -print -quit)"
+assert_file "$upgrade_backup"
+assert_contains 'custom v1 agents' "$upgrade_backup"
+assert_not_contains 'custom v1 agents' "$upgrade_repo/AGENTS.md"
+assert_contains 'CONFLICT: docs/RELIABILITY.md -> docs/VERIFY.md' "$TEMP_ROOT/upgrade-v1.log"
+assert_contains 'CONFLICT: docs/product-specs -> docs/specs' "$TEMP_ROOT/upgrade-v1.log"
+assert_contains 'MIGRATE: docs/exec-plans/active -> docs/tasks/active' "$TEMP_ROOT/upgrade-v1.log"
+assert_contains '"takeover_status": "complete"' "$upgrade_repo/.harness/installation.json"
+pass "overwrite backs up core files while preserving customized v1 artifacts and complete metadata"
+
+dry_upgrade="$TEMP_ROOT/dry-upgrade-v1"
+new_git_repo "$dry_upgrade"
+mkdir -p -- "$dry_upgrade/docs/design-docs" "$dry_upgrade/docs/exec-plans/completed"
+printf 'custom decision\n' > "$dry_upgrade/docs/design-docs/custom.md"
+printf 'custom completed plan\n' > "$dry_upgrade/docs/exec-plans/completed/custom.md"
+dry_inventory_before="$(
+  find "$dry_upgrade" -path "$dry_upgrade/.git" -prune -o -printf '%P|%y\n' | sort
+)"
+dry_checksums_before="$(
+  find "$dry_upgrade" -path "$dry_upgrade/.git" -prune -o -type f -print0 |
+    sort -z |
+    xargs -0 -r sha256sum
+)"
+install_harness "$dry_upgrade" --dry-run > "$TEMP_ROOT/dry-upgrade-v1.log"
+dry_inventory_after="$(
+  find "$dry_upgrade" -path "$dry_upgrade/.git" -prune -o -printf '%P|%y\n' | sort
+)"
+dry_checksums_after="$(
+  find "$dry_upgrade" -path "$dry_upgrade/.git" -prune -o -type f -print0 |
+    sort -z |
+    xargs -0 -r sha256sum
+)"
+[[ "$dry_inventory_before" == "$dry_inventory_after" ]] || fail "upgrade dry-run changed filesystem inventory"
+[[ "$dry_checksums_before" == "$dry_checksums_after" ]] || fail "upgrade dry-run changed file content"
+assert_contains 'MIGRATE: docs/design-docs -> docs/decisions' "$TEMP_ROOT/dry-upgrade-v1.log"
+assert_contains 'MIGRATE: docs/exec-plans/completed -> docs/tasks/completed' "$TEMP_ROOT/dry-upgrade-v1.log"
+pass "upgrade dry run creates, deletes, and renames nothing"
+
 expect_status 1 "$SOURCE_ROOT/install.sh" --target "$TEMP_ROOT/does-not-exist" > "$TEMP_ROOT/missing.log" 2>&1
 assert_contains 'target does not exist' "$TEMP_ROOT/missing.log"
 pass "installer rejects a missing target"
