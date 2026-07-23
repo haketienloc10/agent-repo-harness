@@ -49,19 +49,79 @@ trigger sau:
 - cần chọn giữa nhiều phương án kiến trúc;
 - có blocker hoặc dependency bên ngoài;
 - người dùng yêu cầu plan;
-- cần handoff cho người hoặc agent khác.
+- cần handoff cho người hoặc agent khác;
+- phát hiện friction làm task bị chặn, đổi scope, cần follow-up, làm source of
+  truth không rõ hoặc khiến verification không thể chứng minh kết quả.
 
 Task nhỏ không có trigger thì không tạo plan. Một code task không tự động cần
-plan chỉ vì có sửa file.
+plan chỉ vì có sửa file. Friction nhỏ, xảy ra một lần và không ảnh hưởng kết quả
+không phải lý do để tạo artifact.
 
-Khi dùng plan, cập nhật nó khi scope, decision, blocker, progress hoặc
-verification thay đổi; không ghi log từng tool call.
+Khi dùng plan, cập nhật nó khi scope, decision, blocker, phase, progress hoặc
+verification thay đổi; không ghi log từng tool call, từng file đọc hoặc từng
+command không tạo ra kết quả đáng kể.
+
+Giữ `Current state` ngắn và quan sát được:
+
+```markdown
+## Current state
+
+- Phase: investigating | implementing | verifying | blocked
+- Current result: kết quả gần nhất có bằng chứng
+- Blocker: none hoặc dependency/hành động cụ thể để unblock
+
+## Next action
+
+Bước kế tiếp cụ thể có thể thực hiện hoặc bàn giao.
+```
+
+## Ghi nhận friction
+
+`Friction` là trở ngại có bằng chứng trong quá trình làm task, khiến agent phải
+đoán, bị blocked, tăng đáng kể chi phí điều tra hoặc verification, lặp thao tác
+thủ công, không tìm được source of truth hoặc không thể chứng minh kết quả.
+
+Không ghi nhận nhận xét chung như "code khó hiểu", "task phức tạp" hoặc "test
+hơi lâu". Mỗi friction phải nêu evidence và impact cụ thể. Không có friction thì
+không tạo section rỗng.
+
+Trong active plan, ghi theo schema sau:
+
+```markdown
+## Friction
+
+### `FR-001`: Mô tả ngắn, cụ thể
+
+- Observed while: investigating | implementing | verifying | blocked
+- Evidence: command, path, output hoặc tình huống tái hiện được
+- Impact: ảnh hưởng cụ thể tới task hoặc feedback loop
+- Workaround: cách tạm thời đã dùng, nếu có
+- Disposition: open
+- Extraction target: chỉ ghi khi disposition yêu cầu một target
+```
+
+Disposition hợp lệ:
+
+- `open`: chỉ dùng khi task còn active;
+- `fixed-in-task`;
+- `extracted-to-agents`;
+- `extracted-to-architecture`;
+- `extracted-to-verify`;
+- `promoted-to-checker`;
+- `promoted-to-test`;
+- `follow-up-task`;
+- `accepted-no-action`.
+
+`extracted-to-*` và `follow-up-task` phải ghi `Extraction target` cụ thể. Trước
+khi chuyển plan sang completed, mọi friction phải có disposition cuối cùng;
+không giữ `open` trong completed plan.
 
 Lifecycle:
 
 ```text
 active
 → verification hoàn tất
+→ xử lý hoặc định tuyến mọi friction
 → chắt lọc durable knowledge
 → final summary
 → dùng `mv` chuyển sang docs/tasks/completed/
@@ -92,5 +152,5 @@ Không xóa completed plan. Completed plan không thay thế spec, ADR,
 ## Hoàn thành
 
 Một thay đổi chỉ hoàn thành khi hành vi mục tiêu đã được triển khai, verification
-liên quan đã chạy, không có regression mới, và tài liệu nguồn sự thật bị ảnh
-hưởng đã được cập nhật.
+liên quan đã chạy, không có regression mới, mọi friction đã được xử lý hoặc định
+tuyến rõ ràng, và tài liệu nguồn sự thật bị ảnh hưởng đã được cập nhật.
