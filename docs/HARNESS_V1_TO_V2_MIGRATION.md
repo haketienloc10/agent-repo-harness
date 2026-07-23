@@ -4,6 +4,9 @@ Guide này dùng cho repository đã cài harness v1. Cleanup trong repository
 `agent-repo-harness` chỉ xóa default khỏi `repo-template/`; installer và guide
 này không xóa, rename hoặc ghi đè file trong repository người dùng.
 
+Xem [release notes v2.0.0](./RELEASE_NOTES_V2.md) để biết breaking changes,
+fresh-install structure, compatibility và rollback guidance.
+
 ## Nguyên tắc an toàn
 
 1. Commit hoặc backup working tree trước khi migration.
@@ -119,3 +122,11 @@ Ngoài count, review phải xác nhận:
 
 Chỉ sau các assertion này, con người có thể phê duyệt một commit xóa source v1
 đã được accounting đầy đủ. Việc xóa đó không thuộc installer.
+
+## Rollback
+
+Giữ tag/commit v1 cùng inventory/checksum trước migration. Safe install không
+xóa source v1, nên có thể bỏ riêng core v2 chưa được chỉnh sửa nếu cần quay lại.
+Nếu đã dùng `--overwrite`, phục hồi core file từ
+`.harness/backups/<timestamp>/`. Không xóa completed plan, conflict target hoặc
+artifact chưa phân loại trong quá trình rollback.

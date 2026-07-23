@@ -84,6 +84,8 @@ Thành phần chính:
 - [`examples/legacy-project/`](./examples/legacy-project/README.md): fixture minh họa takeover và legacy failure.
 - [`docs/HARNESS_V1_TO_V2_MIGRATION.md`](./docs/HARNESS_V1_TO_V2_MIGRATION.md):
   guide audit và migration v1 sang v2 không phá hủy dữ liệu.
+- [`docs/RELEASE_NOTES_V2.md`](./docs/RELEASE_NOTES_V2.md): breaking changes,
+  cấu trúc fresh install, compatibility, migration và rollback cho v2.0.0.
 
 Harness checker tại `scripts/harness-check.sh` trong repo đích không chạy command
 dự án. Checker trả exit `0` khi cấu hình không có `FAIL`; legacy issue có đủ
@@ -106,3 +108,4 @@ Xem thêm hướng dẫn đầy đủ, baseline policy và cấu trúc template 
 Repository đã có harness v1 nên chạy installer với `--dry-run`, sau đó làm theo
 [guide migration v1 sang v2](./docs/HARNESS_V1_TO_V2_MIGRATION.md). Installer
 chỉ báo inventory; nó không xóa, rename hoặc overwrite artifact migration.
+Completed plan phải được giữ và kiểm tra count/checksum trước và sau migration.

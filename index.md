@@ -7,7 +7,7 @@ Gói này tập hợp thiết kế harness được mô tả trong bài viết "
 Bài viết harness engineering mô tả các nguyên tắc cấp cao: kho lưu trữ là hệ thống ghi chép, bộ nhớ ngoại hóa, kiểm tra cơ học thay vì ký ức, và các vòng phản hồi phục hồi. Gói này biến các nguyên tắc đó thành:
 
 - bộ tài liệu cấu trúc rõ ràng cho một repo thực tế
-- tính điểm chất lượng theo domain sản phẩm và lớp kiến trúc
+- phân loại baseline, regression, observation và technical debt bằng evidence
 - thư mục tài liệu tham khảo thân thiện với model
 - các quy trình vận hành chuẩn cho kiến trúc, thu thập kiến thức, và xác minh runtime
 
@@ -44,6 +44,9 @@ Artifact optional chỉ được tạo khi repository có nội dung thực. Sou
 | Debt đang mở | `docs/KNOWN_DEBT.md` |
 | Task đang làm / đã hoàn thành | `docs/tasks/active/`, `docs/tasks/completed/` |
 | Generated/reference có provenance | `docs/generated/`, `docs/references/` |
+
+Breaking changes, compatibility, migration và rollback của release được ghi tại
+[`docs/RELEASE_NOTES_V2.md`](./docs/RELEASE_NOTES_V2.md).
 
 Gói [`workspace-template/`](./workspace-template/README.md) dành cho một local
 workspace chứa nhiều Git repository độc lập. Nó cài các artifact điều phối ở
@@ -148,7 +151,9 @@ các module và không chứng minh integration nếu chưa có command/evidence
 ## Baseline và phân loại failure
 
 - **Legacy issue**: failure có reproduction và evidence tại đúng baseline revision;
-  giữ trong `LEGACY_ISSUES.md`, kể cả sau khi chuyển thành `Resolved`.
+  giữ trong `LEGACY_ISSUES.md` khi trạng thái là `Accepted` hoặc `In progress`.
+  Khi resolved, chuyển resolution evidence sang completed plan hoặc Git và bỏ
+  item khỏi optional open-state file.
 - **Regression**: failure do task hiện tại hoặc thay đổi sau baseline tạo ra; phải
   sửa trước khi hoàn thành, không được chuyển thành legacy issue hoặc technical debt.
 - **Observation chưa phân loại**: chưa đủ bằng chứng về nguồn gốc; giữ trong kế hoạch
@@ -179,9 +184,9 @@ trước khi xử lý repository v1.
 Các path v1 còn xuất hiện trong `repo-template/scripts/harness-check.sh` là alias
 tương thích read-only cho repository chưa migration. Các path v1 trong
 `tests/lib.sh`, `tests/test-installer.sh`, `tests/test-checker.sh` và
-`tests/fixtures/migration-v1-to-v2/` là migration/compatibility fixture có chủ
-ý. Chúng không phải link hướng dẫn hiện hành và không được installer tạo trên
-fresh install.
+`tests/test-e2e-upgrade.sh`, `tests/fixtures/migration-v1-to-v2/` là
+migration/compatibility fixture có chủ ý. Chúng không phải link hướng dẫn hiện
+hành và không được installer tạo trên fresh install.
 
 ## Thư viện SOP
 
