@@ -389,7 +389,8 @@ else
 
   printf 'Running repository installer...\n'
   set +e
-  bash "$source_dir/install.sh" "${repository_args[@]}"
+  HARNESS_SOURCE="github:$HARNESS_REPOSITORY" HARNESS_REF="$HARNESS_REF" \
+    bash "$source_dir/install.sh" "${repository_args[@]}"
   installer_status=$?
   set -e
 fi

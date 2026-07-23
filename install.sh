@@ -7,6 +7,10 @@ HARNESS_VERSION="1.0.0"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 MANIFEST_PATH="$SCRIPT_DIR/.harness-required-files"
 TEMPLATE_DIR="$SCRIPT_DIR/repo-template"
+HARNESS_SOURCE="${HARNESS_SOURCE:-local}"
+if [[ -z "${HARNESS_REF:-}" ]]; then
+  HARNESS_REF="$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || printf 'working-tree')"
+fi
 
 usage() {
   cat <<'USAGE'
@@ -186,7 +190,8 @@ install_metadata() {
   local relative_path=".harness/installation.json"
   local destination="$TARGET_DIR/$relative_path"
   local metadata
-  metadata="$(printf '{\n  \"installed_at\": \"%s\",\n  \"harness_version\": \"%s\",\n  \"baseline_status\": \"pending\"\n}\n' "$installed_at" "$HARNESS_VERSION")"
+  metadata="$(printf '{\n  \"schema\": \"harness/installation/v2\",\n  \"source\": \"%s\",\n  \"ref\": \"%s\",\n  \"installed_at\": \"%s\",\n  \"harness_version\": \"%s\",\n  \"takeover_status\": \"pending\",\n  \"baseline_revision\": \"\",\n  \"takeover_completed_at\": \"\",\n  \"blocker_reason\": \"\",\n  \"baseline_status\": \"pending\"\n}\n' \
+    "$HARNESS_SOURCE" "$HARNESS_REF" "$installed_at" "$HARNESS_VERSION")"
 
   if find_unsafe_parent "$relative_path"; then
     record_conflict "$relative_path (unsafe parent path: $unsafe_parent)"

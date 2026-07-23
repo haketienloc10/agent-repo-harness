@@ -97,6 +97,10 @@ configure_harness() {
 
   printf '%s\n' '| fixture | `A` | configured | configured | configured | configured | 2026-07-17 |' \
     >> "$target/docs/QUALITY_SCORE.md"
+
+  if grep -q '"schema": "harness/installation/v2"' "$target/.harness/installation.json" 2>/dev/null; then
+    write_v2_metadata "$target" complete "$revision" "2026-07-17T00:00:00Z"
+  fi
 }
 
 make_configured_repo() {
@@ -109,6 +113,13 @@ make_configured_repo() {
   git -C "$target" commit -qm baseline
   revision="$(git -C "$target" rev-parse HEAD)"
   install_harness "$target" >/dev/null
+  printf '%s\n' \
+    '{' \
+    '  "installed_at": "2026-07-17T00:00:00Z",' \
+    '  "harness_version": "1.0.0",' \
+    '  "baseline_status": "complete"' \
+    '}' \
+    > "$target/.harness/installation.json"
   configure_harness "$target" "$revision"
 }
 
