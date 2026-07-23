@@ -1,0 +1,4 @@
+Purpose: sample framework reference.
+
+Replace this text with an upstream source, retrieved version, scope, and refresh
+trigger before relying on it.
