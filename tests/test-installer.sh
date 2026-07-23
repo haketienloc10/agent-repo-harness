@@ -71,6 +71,29 @@ assert_contains '`docs/tasks/completed/` | Chỉ khi cần lịch sử liên qua
 assert_not_contains 'docs/QUALITY_SCORE.md' "$empty_repo/AGENTS.md"
 assert_not_contains 'docs/PLANS.md' "$empty_repo/AGENTS.md"
 assert_not_contains 'docs/exec-plans/' "$empty_repo/AGENTS.md"
+for plan_trigger in \
+  'kéo dài qua nhiều phiên' \
+  'chạm từ hai subsystem hoặc domain' \
+  'có migration, backfill hoặc data transform' \
+  'thay đổi public API hoặc external contract' \
+  'có breaking change' \
+  'chạm auth, secret hoặc sensitive data' \
+  'cần rollout hoặc rollback phức tạp' \
+  'cần chọn giữa nhiều phương án kiến trúc' \
+  'có blocker hoặc dependency bên ngoài' \
+  'người dùng yêu cầu plan' \
+  'cần handoff cho người hoặc agent khác'; do
+  assert_contains "$plan_trigger" "$empty_repo/AGENTS.md"
+done
+assert_contains 'Task nhỏ không có trigger thì không tạo plan.' "$empty_repo/AGENTS.md"
+assert_contains 'không ghi log từng tool call.' "$empty_repo/AGENTS.md"
+assert_contains '→ verification hoàn tất' "$empty_repo/AGENTS.md"
+assert_contains '→ chắt lọc durable knowledge' "$empty_repo/AGENTS.md"
+assert_contains '→ final summary' "$empty_repo/AGENTS.md"
+assert_contains '→ chuyển sang docs/tasks/completed/' "$empty_repo/AGENTS.md"
+assert_contains '→ giữ lâu dài' "$empty_repo/AGENTS.md"
+assert_contains 'Không xóa completed plan.' "$empty_repo/AGENTS.md"
+assert_contains 'Completed plan không thay thế spec, ADR,' "$empty_repo/AGENTS.md"
 assert_contains '## Installation state machine' "$empty_repo/docs/HARNESS_SETUP.md"
 assert_contains 'Khi bắt đầu takeover, tạo `docs/TAKEOVER_BASELINE.md`' "$empty_repo/docs/HARNESS_SETUP.md"
 assert_contains 'Takeover chỉ complete khi `./scripts/harness-check.sh` trả exit `0`' "$empty_repo/docs/HARNESS_SETUP.md"

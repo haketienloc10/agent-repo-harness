@@ -39,6 +39,49 @@ migration hoặc cấu hình runtime:
 Không đọc toàn bộ cây `docs/`. Artifact optional không tồn tại thì tiếp tục bằng
 source và tài liệu hiện có; không tạo file chỉ để lấp chỗ trống.
 
+## Khi nào cần execution plan
+
+Tạo hoặc tiếp tục `docs/tasks/active/<task>.md` chỉ khi task có ít nhất một
+trigger sau:
+
+- kéo dài qua nhiều phiên;
+- chạm từ hai subsystem hoặc domain;
+- có migration, backfill hoặc data transform;
+- thay đổi public API hoặc external contract;
+- có breaking change;
+- chạm auth, secret hoặc sensitive data;
+- cần rollout hoặc rollback phức tạp;
+- cần chọn giữa nhiều phương án kiến trúc;
+- có blocker hoặc dependency bên ngoài;
+- người dùng yêu cầu plan;
+- cần handoff cho người hoặc agent khác.
+
+Task nhỏ không có trigger thì không tạo plan. Một code task không tự động cần
+plan chỉ vì có sửa file.
+
+Khi dùng plan, cập nhật nó khi scope, decision, blocker, progress hoặc
+verification thay đổi; không ghi log từng tool call.
+
+Lifecycle:
+
+```text
+active
+→ verification hoàn tất
+→ chắt lọc durable knowledge
+→ final summary
+→ chuyển sang docs/tasks/completed/
+→ giữ lâu dài
+```
+
+Trước khi archive, chuyển tri thức lâu bền sang source of truth phù hợp như
+`docs/specs/`, `docs/decisions/`, `ARCHITECTURE.md`, `docs/VERIFY.md`,
+`docs/SECURITY.md` hoặc `docs/KNOWN_DEBT.md`. Final summary phải ghi kết quả,
+verification evidence và durable knowledge đã được chắt lọc ở đâu.
+
+Không xóa completed plan. Completed plan không thay thế spec, ADR,
+`ARCHITECTURE.md` hoặc `docs/VERIFY.md`, và fresh install không tạo
+`docs/tasks/completed/` rỗng.
+
 ## Hợp đồng làm việc
 
 - Làm việc theo scope đã thống nhất và dùng bằng chứng có thể chạy được.
