@@ -112,6 +112,10 @@ make_configured_repo() {
   configure_harness "$target" "$revision"
 }
 
+make_v1_repo() {
+  make_configured_repo "$1"
+}
+
 expect_status() {
   local expected="$1"
   shift

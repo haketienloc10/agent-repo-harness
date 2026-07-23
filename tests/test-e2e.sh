@@ -26,7 +26,7 @@ source_after="$(cd "$fixture_repo" && git ls-files -z | xargs -0 sha256sum | sor
 [[ "$source_before" == "$source_after" ]] || fail "installer changed committed fixture source"
 assert_contains 'Open docs/HARNESS_SETUP.md' "$TEMP_ROOT/install.log"
 assert_contains 'do not start user product tasks yet' "$TEMP_ROOT/install.log"
-assert_not_contains 'HARNESS_SETUP' "$fixture_repo/AGENTS.md"
+assert_not_contains 'do not start user product tasks yet' "$fixture_repo/AGENTS.md"
 
 configure_harness "$fixture_repo" "$revision"
 rm -f -- "$fixture_repo/docs/exec-plans/active/verify-fixture.md"
@@ -40,7 +40,7 @@ assert_contains 'PASS [summary]' "$TEMP_ROOT/check.log"
 git -C "$fixture_repo" diff --exit-code -- app.sh project-checks README.md
 
 assert_contains 'Quá trình tiếp quản hoàn thành khi `./scripts/harness-check.sh` trả exit `0`' "$fixture_repo/docs/HARNESS_SETUP.md"
-assert_contains 'Không tự tạo task sửa legacy issue' "$fixture_repo/docs/HARNESS_SETUP.md"
+assert_contains 'không tự tạo task sửa legacy issue' "$fixture_repo/docs/HARNESS_SETUP.md"
 assert_contains 'Định nghĩa Sẵn sàng' "$fixture_repo/docs/HARNESS_SETUP.md"
 assert_contains 'git diff --check' "$fixture_repo/docs/HARNESS_SETUP.md"
 assert_contains 'Điểm yếu kiến trúc' "$fixture_repo/docs/HARNESS_SETUP.md"

@@ -14,7 +14,7 @@ run_failure_case() {
   local target="$TEMP_ROOT/$name"
   shift 2
 
-  make_configured_repo "$target"
+  make_v1_repo "$target"
   "$@" "$target"
   expect_status 1 "$target/scripts/harness-check.sh" > "$TEMP_ROOT/$name.log"
   assert_contains "$expected" "$TEMP_ROOT/$name.log"
@@ -32,7 +32,7 @@ run_failure_case broken-link "points to missing relative target 'missing.md'" ad
 run_failure_case missing-revision 'must contain a 7-64 character hexadecimal Git revision' break_revision
 run_failure_case legacy-without-evidence "LEGACY-001 has no configured 'Baseline evidence'" remove_evidence
 valid_legacy="$TEMP_ROOT/valid-legacy"
-make_configured_repo "$valid_legacy"
+make_v1_repo "$valid_legacy"
 expect_status 0 "$valid_legacy/scripts/harness-check.sh" > "$TEMP_ROOT/valid-legacy.log"
 assert_contains 'BASELINE [legacy-issues] LEGACY-001' "$TEMP_ROOT/valid-legacy.log"
 assert_contains 'PASS [active-plan] Active execution plan found:' "$TEMP_ROOT/valid-legacy.log"
@@ -40,16 +40,19 @@ assert_contains 'PASS [summary]' "$TEMP_ROOT/valid-legacy.log"
 pass "valid legacy evidence does not fail the checker"
 
 completed_plan="$TEMP_ROOT/completed-plan"
-make_configured_repo "$completed_plan"
+make_v1_repo "$completed_plan"
 mv -- "$completed_plan/docs/exec-plans/active/verify-fixture.md" \
   "$completed_plan/docs/exec-plans/completed/verify-fixture.md"
 expect_status 0 "$completed_plan/scripts/harness-check.sh" > "$TEMP_ROOT/completed-plan.log"
+assert_file "$completed_plan/docs/exec-plans/completed/verify-fixture.md"
+assert_contains '# Verify legacy fixture' \
+  "$completed_plan/docs/exec-plans/completed/verify-fixture.md"
 assert_contains 'No active execution plan; docs/exec-plans/active may be empty when no task is in progress' "$TEMP_ROOT/completed-plan.log"
 assert_contains 'PASS [summary]' "$TEMP_ROOT/completed-plan.log"
-pass "checker accepts an empty active directory after the final plan is completed"
+pass "checker accepts and retains a completed plan while the active directory is empty"
 
 complete="$TEMP_ROOT/complete"
-make_configured_repo "$complete"
+make_v1_repo "$complete"
 before="$(find "$complete" -type f -not -path '*/.git/*' -exec sha256sum {} + | sort | sha256sum)"
 (
   cd "$complete/docs/exec-plans/active"
