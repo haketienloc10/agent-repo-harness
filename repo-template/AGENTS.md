@@ -17,19 +17,19 @@ migration hoặc cấu hình runtime:
 
 ## Định tuyến theo concern
 
-| Artifact | Khi nào đọc |
-|---|---|
-| `docs/tasks/active/<task>.md` | Khi task có active plan liên quan. |
-| `docs/specs/` | Khi thay đổi hành vi người dùng, API behavior, user flow hoặc acceptance criteria. |
-| `docs/decisions/` | Khi thay đổi boundary, dependency direction, shared abstraction hoặc quyết định kiến trúc đã ghi nhận. |
-| `docs/UI.md` | Khi sửa UI state, interaction, responsive behavior, accessibility hoặc design-system usage. |
-| `docs/SECURITY.md` | Khi task chạm auth, secret, dữ liệu nhạy cảm, input không tin cậy, dependency hoặc hành động bên ngoài. |
-| `docs/TAKEOVER_BASELINE.md` | Khi cần so sánh failure hoặc regression với snapshot takeover. |
-| `docs/LEGACY_ISSUES.md` | Khi verification có failure liên quan hoặc cần phân loại legacy failure. |
-| `docs/KNOWN_DEBT.md` | Khi kiểm tra constraint đã hoãn hoặc chủ động hoãn một khiếm khuyết thực sự; không dùng cho regression mới. |
-| `docs/generated/` | Khi task phụ thuộc artifact do generator sở hữu. |
-| `docs/references/` | Khi task cần nguồn ngoài về tool, framework hoặc standard cụ thể. |
-| `docs/tasks/completed/` | Chỉ khi cần lịch sử liên quan, như tiếp tục công việc cũ hoặc điều tra regression. |
+| Artifact                      | Khi nào đọc                                                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `docs/tasks/active/<task>.md` | Khi task có active plan liên quan.                                                                          |
+| `docs/specs/`                 | Khi thay đổi hành vi người dùng, API behavior, user flow hoặc acceptance criteria.                          |
+| `docs/decisions/`             | Khi thay đổi boundary, dependency direction, shared abstraction hoặc quyết định kiến trúc đã ghi nhận.      |
+| `docs/UI.md`                  | Khi sửa UI state, interaction, responsive behavior, accessibility hoặc design-system usage.                 |
+| `docs/SECURITY.md`            | Khi task chạm auth, secret, dữ liệu nhạy cảm, input không tin cậy, dependency hoặc hành động bên ngoài.     |
+| `docs/TAKEOVER_BASELINE.md`   | Khi cần so sánh failure hoặc regression với snapshot takeover.                                              |
+| `docs/LEGACY_ISSUES.md`       | Khi verification có failure liên quan hoặc cần phân loại legacy failure.                                    |
+| `docs/KNOWN_DEBT.md`          | Khi kiểm tra constraint đã hoãn hoặc chủ động hoãn một khiếm khuyết thực sự; không dùng cho regression mới. |
+| `docs/generated/`             | Khi task phụ thuộc artifact do generator sở hữu.                                                            |
+| `docs/references/`            | Khi task cần nguồn ngoài về tool, framework hoặc standard cụ thể.                                           |
+| `docs/tasks/completed/`       | Chỉ khi cần lịch sử liên quan, như tiếp tục công việc cũ hoặc điều tra regression.                          |
 
 Không đọc toàn bộ cây `docs/`. Artifact optional không tồn tại thì tiếp tục bằng
 source và tài liệu hiện có; không tạo file chỉ để lấp chỗ trống.
@@ -76,6 +76,33 @@ verification evidence và durable knowledge đã được chắt lọc ở đâu
 Không xóa completed plan. Completed plan không thay thế spec, ADR,
 `ARCHITECTURE.md` hoặc `docs/VERIFY.md`, và fresh install không tạo
 `docs/tasks/completed/` rỗng.
+
+## Ghi nhận friction
+
+Friction là vấn đề đã quan sát được làm agent đổi planned approach, thực hiện
+lại một bước có chi phí hoặc làm giảm độ tin cậy của feedback loop.
+
+Ghi lại friction đáng kể tại
+`docs/friction/<yyyy-mm-dd>-<short-name>.md`. Một file có thể chứa nhiều
+friction liên quan của cùng task. Nếu task có plan, thêm link tới friction note
+khi observation đó ảnh hưởng tới progress, verification hoặc handoff; plan
+không sao chép nội dung friction. Không tạo plan chỉ để ghi friction.
+
+Mỗi ghi nhận theo format:
+
+```md
+### Mô tả cụ thể vấn đề
+
+- `Impact`: nó cản trở task thế nào;
+- `Evidence`: bằng chứng kiểm tra lại được.
+```
+
+Chỉ ghi vấn đề gắn với repository, tooling hoặc instruction của task. Không ghi
+typo, command lỗi không đáng kể, hậu quả suy đoán hoặc việc agent thiếu kiến
+thức chung, trừ khi repository làm việc khám phá cần thiết trở nên khó khăn.
+Friction không mặc định là defect, debt, durable knowledge hay follow-up task;
+không bắt buộc tìm root cause hoặc sửa trong task hiện tại. Không có friction
+đáng kể thì không tạo mục, thư mục hoặc file rỗng.
 
 ## Hợp đồng làm việc
 
