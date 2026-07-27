@@ -6,12 +6,13 @@ Installer hỗ trợ hai loại target:
 
 1. **Multi-repository workspace**: workspace root chứa nhiều Git repository độc
    lập trong các thư mục con. Installer sao chép nội dung `workspace-template/`
-   vào workspace root.
+   vào workspace root. Agent root mang danh tính **QiQi** và dùng Herdr để điều
+   phối các phiên Codex trong repository con.
 2. **Single Git repository**: một Git repository gốc, không chứa Git repository
    lồng bên trong. Chế độ này giữ nguyên luồng cài đặt hiện tại qua `install.sh`.
 
-Installer chỉ thêm các file harness. Nó không chạy build, test, lint, migration
-hoặc thay đổi source code của dự án hay các repository con.
+Installer chỉ thêm các file harness. Nó không chạy build, test, lint, migration,
+cài Herdr/Codex hoặc thay đổi source code của dự án hay các repository con.
 
 ### Cài nhanh từ GitHub
 
@@ -65,7 +66,12 @@ Sau khi cài repo đơn, agent phải hoàn thành `docs/HARNESS_SETUP.md` và c
 `./scripts/harness-check.sh`.
 
 Sau khi cài workspace, agent phải hoàn thành `docs/WORKSPACE_SETUP.md`, điền
-`repos.yaml` cùng `SYSTEM_MAP.md`, rồi chạy `./scripts/workspace-check.sh`.
+`repos.yaml`, `SYSTEM_MAP.md` và `instructions/model-routing.md`, xác nhận
+Codex/Herdr runtime, rồi chạy `./scripts/workspace-check.sh`.
+
+Workspace template đã vendor Herdr skill tại
+`.agents/skills/herdr/SKILL.md` cùng license và provenance. Nó không tự cài
+binary Herdr hoặc thay đổi config user-level.
 
 ## Tổng quan
 
@@ -77,7 +83,8 @@ dự án, ghi nhận baseline, xử lý legacy issue và xác minh trạng thái
 Thành phần chính:
 
 - [`repo-template/`](./repo-template/index.md): các file harness được cài vào một repo đích.
-- [`workspace-template/`](./workspace-template/README.md): các file điều phối cho workspace nhiều repo.
+- [`workspace-template/`](./workspace-template/README.md): các file điều phối QiQi
+  cho workspace nhiều repo, gồm model routing và Herdr skill project-local.
 - [`install.sh`](./install.sh): installer an toàn cho repo đơn từ bản clone local.
 - [`install-from-github.sh`](./install-from-github.sh): bootstrap installer và bộ chọn hai chế độ.
 - [`sops/`](./sops/index.md): các quy trình vận hành chuẩn.
@@ -92,7 +99,8 @@ dự án. Checker trả exit `0` khi cấu hình không có `FAIL`; legacy issue
 evidence tại baseline được báo là `BASELINE`.
 
 Workspace checker tại `scripts/workspace-check.sh` xác minh cấu trúc điều phối,
-placeholder và registry module. Nó không thay thế test của từng repository con.
+placeholder, model routing, Herdr skill bundle và registry repository. Nó không
+thay thế test của từng repository con hoặc kiểm tra runtime Herdr/Codex trên máy.
 
 ## Kiểm tra thay đổi
 
