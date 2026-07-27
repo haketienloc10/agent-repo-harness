@@ -12,7 +12,7 @@ for test_script in \
   test-e2e-upgrade.sh \
   test-workspace-qiqi.sh; do
   printf '\n==> %s\n' "$test_script"
-  "$TEST_DIR/$test_script"
+  bash "$TEST_DIR/$test_script"
 done
 
 printf '\nAll installer, checker, migration, end-to-end, and workspace tests passed.\n'
