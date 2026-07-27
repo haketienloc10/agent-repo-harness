@@ -15,15 +15,86 @@ require_file() {
 }
 
 require_file "$workspace_root/AGENTS.md"
+require_file "$workspace_root/identity.md"
 require_file "$workspace_root/SYSTEM_MAP.md"
 require_file "$workspace_root/repos.yaml"
+require_file "$workspace_root/instructions/model-routing.md"
+require_file "$workspace_root/.agents/skills/herdr/SKILL.md"
+require_file "$workspace_root/.agents/skills/herdr/LICENSE.txt"
+require_file "$workspace_root/.agents/skills/herdr/SOURCE.md"
 require_file "$workspace_root/docs/WORKSPACE_SETUP.md"
 
-if rg -n '\{\{[^}]+\}\}' \
-  "$workspace_root/AGENTS.md" \
-  "$workspace_root/SYSTEM_MAP.md" \
-  "$workspace_root/repos.yaml"; then
+managed_files=(
+  "$workspace_root/AGENTS.md"
+  "$workspace_root/identity.md"
+  "$workspace_root/SYSTEM_MAP.md"
+  "$workspace_root/repos.yaml"
+  "$workspace_root/instructions/model-routing.md"
+)
+
+existing_managed_files=()
+for path in "${managed_files[@]}"; do
+  [[ -f "$path" ]] && existing_managed_files+=("$path")
+done
+
+if ((${#existing_managed_files[@]} > 0)) && rg -n '\{\{[^}]+\}\}' "${existing_managed_files[@]}"; then
   fail 'unresolved placeholder(s) found; replace every template value'
+fi
+
+herdr_skill="$workspace_root/.agents/skills/herdr/SKILL.md"
+herdr_license="$workspace_root/.agents/skills/herdr/LICENSE.txt"
+herdr_source="$workspace_root/.agents/skills/herdr/SOURCE.md"
+
+if [[ -f "$herdr_skill" ]]; then
+  rg -q '^---$' "$herdr_skill" || fail '.agents/skills/herdr/SKILL.md: missing YAML frontmatter fence'
+  rg -q '^name:[[:space:]]+herdr$' "$herdr_skill" || \
+    fail '.agents/skills/herdr/SKILL.md: frontmatter name must be herdr'
+  rg -q '^description:.*Herdr' "$herdr_skill" || \
+    fail '.agents/skills/herdr/SKILL.md: description must identify Herdr'
+  rg -q 'HERDR_ENV=1' "$herdr_skill" || \
+    fail '.agents/skills/herdr/SKILL.md: must require HERDR_ENV=1'
+fi
+
+if [[ -f "$herdr_license" ]]; then
+  rg -q 'Apache License' "$herdr_license" || \
+    fail '.agents/skills/herdr/LICENSE.txt: expected Apache License text'
+  rg -q 'Version 2\.0' "$herdr_license" || \
+    fail '.agents/skills/herdr/LICENSE.txt: expected Apache License Version 2.0'
+fi
+
+if [[ -f "$herdr_source" ]]; then
+  rg -q 'https://github\.com/ogulcancelik/herdr' "$herdr_source" || \
+    fail '.agents/skills/herdr/SOURCE.md: missing upstream repository'
+  rg -q 'Upstream commit' "$herdr_source" || \
+    fail '.agents/skills/herdr/SOURCE.md: missing pinned upstream commit'
+  rg -q 'Local modifications' "$herdr_source" || \
+    fail '.agents/skills/herdr/SOURCE.md: missing local-modification status'
+fi
+
+if [[ -f "$workspace_root/AGENTS.md" ]]; then
+  rg -q '`identity\.md`' "$workspace_root/AGENTS.md" || \
+    fail 'AGENTS.md: must route QiQi to identity.md'
+  rg -q '`instructions/model-routing\.md`' "$workspace_root/AGENTS.md" || \
+    fail 'AGENTS.md: must route QiQi to instructions/model-routing.md'
+  rg -q '`\.agents/skills/herdr/SKILL\.md`' "$workspace_root/AGENTS.md" || \
+    fail 'AGENTS.md: must route QiQi to the bundled Herdr skill'
+  rg -q 'HERDR_ENV=1' "$workspace_root/AGENTS.md" || \
+    fail 'AGENTS.md: must require HERDR_ENV=1 before Herdr control'
+fi
+
+if [[ -f "$workspace_root/instructions/model-routing.md" ]]; then
+  rg -q 'Điểm mạnh' "$workspace_root/instructions/model-routing.md" || \
+    fail 'instructions/model-routing.md: missing model strengths'
+  rg -q 'Điểm yếu' "$workspace_root/instructions/model-routing.md" || \
+    fail 'instructions/model-routing.md: missing model weaknesses'
+  rg -q 'Model ID' "$workspace_root/instructions/model-routing.md" || \
+    fail 'instructions/model-routing.md: missing exact model ID inventory'
+  rg -q 'fast' "$workspace_root/instructions/model-routing.md" || \
+    fail 'instructions/model-routing.md: missing fast profile'
+  rg -q 'balanced' "$workspace_root/instructions/model-routing.md" || \
+    fail 'instructions/model-routing.md: missing balanced profile'
+  rg -q 'deep' "$workspace_root/instructions/model-routing.md" || \
+    fail 'instructions/model-routing.md: missing deep profile'
 fi
 
 if ! command -v yq >/dev/null 2>&1; then
