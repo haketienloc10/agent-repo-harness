@@ -94,16 +94,16 @@ Với mỗi task cần thực hiện trong repository con:
    root của repository đích. Mặc định tạo tab riêng và không chuyển focus; chỉ
    tạo workspace khi task cần cô lập thành một nhóm làm việc riêng. Không split
    pane trong tab hiện tại trừ khi người dùng yêu cầu rõ.
-5. Khởi động một phiên Codex bằng model đã chọn và tên agent duy nhất, dễ truy
+4. Khởi động một phiên Codex bằng model đã chọn và tên agent duy nhất, dễ truy
    vết về repository và task.
-6. Gửi prompt giao việc gồm tối thiểu:
+5. Gửi prompt giao việc gồm tối thiểu:
    - mục tiêu;
    - phạm vi và phần ngoài phạm vi;
    - dependency hoặc contract liên quan;
    - yêu cầu làm việc hoàn toàn trong repository hiện tại;
    - yêu cầu đọc và tuân theo `AGENTS.md` của repository;
    - output cần trả về khi hoàn thành.
-7. Dùng Herdr để chờ và đọc trạng thái; không suy đoán ID hoặc trạng thái từ vị
+6. Dùng Herdr để chờ và đọc trạng thái; không suy đoán ID hoặc trạng thái từ vị
    trí hiển thị.
 
 Prompt không sao chép workflow chi tiết của repository con. Agent con phải tự
