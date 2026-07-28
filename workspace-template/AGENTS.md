@@ -95,14 +95,16 @@ Với mỗi task cần thực hiện trong repository con:
    tạo workspace khi task cần cô lập thành một nhóm làm việc riêng. Không split
    pane trong tab hiện tại trừ khi người dùng yêu cầu rõ.
 4. Khởi động một phiên Codex bằng model đã chọn và tên agent duy nhất, dễ truy
-   vết về repository và task.
+   vết về repository và task. Luôn truyền `--yolo` sau dấu phân cách argument
+   của Herdr, ví dụ: `herdr agent start <name> --kind codex --pane <id> -- --yolo --model <model-id>`.
 5. Gửi prompt giao việc gồm tối thiểu:
    - mục tiêu;
    - phạm vi và phần ngoài phạm vi;
    - dependency hoặc contract liên quan;
    - yêu cầu làm việc hoàn toàn trong repository hiện tại;
    - yêu cầu đọc và tuân theo `AGENTS.md` của repository;
-   - output cần trả về khi hoàn thành.
+   - output cần trả về khi hoàn thành; agent phải tự giữ báo cáo cuối gọn, đầy
+     đủ, đặt kết luận, verification và blocker ở cuối để Herdr thu hồi được.
 6. Dùng Herdr để chờ và đọc trạng thái; không suy đoán ID hoặc trạng thái từ vị
    trí hiển thị.
 
@@ -127,15 +129,35 @@ người dùng yêu cầu rõ và repository có cơ chế cô lập worktree ph
 
 ## Quản lý Trạng thái Phiên
 
-- `working`: để agent tiếp tục; không gửi prompt lặp lại chỉ để hỏi tiến độ.
+- `working`: để agent tiếp tục và chờ lifecycle event từ Herdr; không đọc
+  transcript hoặc gửi prompt lặp lại chỉ để hỏi tiến độ.
 - `blocked`: đọc output, xác định câu hỏi hoặc approval. Tự trả lời khi thông tin
   đã có trong yêu cầu hoặc artifact cấp workspace; nếu không, hỏi người dùng.
 - `done` hoặc `idle`: đọc báo cáo cuối và kiểm tra output được yêu cầu đã đủ.
 - `unknown`: không được coi là hoàn thành; dùng `agent get` và `agent read` để
   điều tra trạng thái.
 
+### Theo dõi theo Sự kiện
+
+Ưu tiên để agent con tự thực hiện task đến khi chuyển sang trạng thái settled.
+Sau khi giao việc, QiQi dùng cơ chế wait của Herdr thay vì polling transcript.
+
+- Không gọi `agent read` định kỳ khi trạng thái vẫn là `working`.
+- Không gửi prompt hỏi tiến độ nếu chưa có blocker hoặc yêu cầu mới.
+- Chỉ đọc output khi phiên chuyển sang `blocked`, `done`, `idle`, `unknown`
+  hoặc lệnh wait trả lỗi.
+- Với `unknown`, dùng `agent get` trước; chỉ đọc transcript khi cần phân biệt
+  agent đang chạy, bị treo hoặc đã hoàn thành.
+- Khi cần kiểm tra sống còn cho task dài, chỉ đọc trạng thái gọn và tăng dần
+  khoảng chờ; không nạp transcript vào context nếu chưa có sự kiện mới.
+- Agent con chịu trách nhiệm giữ báo cáo cuối ngắn, đầy đủ và đặt kết luận,
+  verification, trạng thái Git cùng blocker ở cuối để QiQi thu hồi một lần.
+
 Nếu báo cáo thiếu nguyên nhân, thay đổi, verification, trạng thái Git, blocker
 hoặc bước tiếp theo cần thiết, yêu cầu chính phiên đó bổ sung trước khi đóng.
+Nếu transcript bị thiếu do alternate screen, ưu tiên yêu cầu chính agent trả lại
+chỉ phần thiếu trong tối đa 50 dòng. Chỉ dùng file tạm làm fallback cuối và
+không sửa repository con chỉ để vận chuyển báo cáo.
 
 ## Kết thúc và Dọn Phiên
 
