@@ -90,18 +90,20 @@ Với mỗi task cần thực hiện trong repository con:
 
 1. Lấy đường dẫn repository từ `repos.yaml`.
 2. Xác định task độc lập hay phụ thuộc kết quả của task khác.
-3. Tạo một Herdr workspace hoặc pane do QiQi sở hữu với working directory là
-   root của repository đích.
-4. Khởi động một phiên Codex bằng model đã chọn và tên agent duy nhất, dễ truy
+3. Tạo một Herdr workspace hoặc tab do QiQi sở hữu với working directory là
+   root của repository đích. Mặc định tạo tab riêng và không chuyển focus; chỉ
+   tạo workspace khi task cần cô lập thành một nhóm làm việc riêng. Không split
+   pane trong tab hiện tại trừ khi người dùng yêu cầu rõ.
+5. Khởi động một phiên Codex bằng model đã chọn và tên agent duy nhất, dễ truy
    vết về repository và task.
-5. Gửi prompt giao việc gồm tối thiểu:
+6. Gửi prompt giao việc gồm tối thiểu:
    - mục tiêu;
    - phạm vi và phần ngoài phạm vi;
    - dependency hoặc contract liên quan;
    - yêu cầu làm việc hoàn toàn trong repository hiện tại;
    - yêu cầu đọc và tuân theo `AGENTS.md` của repository;
    - output cần trả về khi hoàn thành.
-6. Dùng Herdr để chờ và đọc trạng thái; không suy đoán ID hoặc trạng thái từ vị
+7. Dùng Herdr để chờ và đọc trạng thái; không suy đoán ID hoặc trạng thái từ vị
    trí hiển thị.
 
 Prompt không sao chép workflow chi tiết của repository con. Agent con phải tự
