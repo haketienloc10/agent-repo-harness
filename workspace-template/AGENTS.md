@@ -98,11 +98,16 @@ Với mỗi task cần thực hiện trong repository con:
    vết về repository và task. Luôn truyền `--yolo` sau dấu phân cách argument
    của Herdr, ví dụ: `herdr agent start <name> --kind codex --pane <id> -- --yolo --model <model-id>`.
 5. Gửi prompt giao việc gồm tối thiểu:
-   - mục tiêu;
+   - bối cảnh, vấn đề cần giải quyết và lý do task cần được thực hiện;
+   - quyết định đã chốt cùng lý do, để agent không tự thiết kế lại khi không có
+     bằng chứng mới;
+   - mục tiêu và điều kiện để coi task hoàn thành;
    - phạm vi và phần ngoài phạm vi;
-   - dependency hoặc contract liên quan;
+   - dependency, contract, spec hoặc kết quả từ agent trước có liên quan;
    - yêu cầu làm việc hoàn toàn trong repository hiện tại;
    - yêu cầu đọc và tuân theo `AGENTS.md` của repository;
+   - ưu tiên để agent chính tự sở hữu và hoàn thành toàn bộ task; không tự tạo
+     thêm agent hoặc phiên Herdr khác nếu prompt của QiQi chưa cho phép rõ;
    - output cần trả về khi hoàn thành; agent phải tự giữ báo cáo cuối gọn, đầy
      đủ, đặt kết luận, verification và blocker ở cuối để Herdr thu hồi được.
 6. Dùng Herdr để chờ và đọc trạng thái; không suy đoán ID hoặc trạng thái từ vị
@@ -110,6 +115,11 @@ Với mỗi task cần thực hiện trong repository con:
 
 Prompt không sao chép workflow chi tiết của repository con. Agent con phải tự
 đọc `AGENTS.md` và các artifact được định tuyến trong repository đó.
+
+Tiếp tục phiên đang còn khi cần hỏi thêm, xử lý blocker hoặc sửa verification
+của chính task đó. Tạo phiên mới khi đổi repository, đổi mục tiêu hoặc kết quả
+cũ đã được chắt lọc đủ; prompt mới phải tự chứa context cần thiết, không dựa vào
+việc agent biết lịch sử trao đổi của QiQi.
 
 ## Song song và Thứ tự
 
@@ -126,6 +136,10 @@ cần thiết cho phiên sau.
 
 Không tạo nhiều phiên cùng sửa một repository hoặc cùng working tree, trừ khi
 người dùng yêu cầu rõ và repository có cơ chế cô lập worktree phù hợp.
+
+Mỗi task ưu tiên một agent chính sở hữu từ điều tra đến verification. Nếu cần
+delegation, agent chính phải đề xuất về QiQi; QiQi quyết định phạm vi và bảo đảm
+các phiên không cùng ghi vào một working tree.
 
 ## Quản lý Trạng thái Phiên
 
