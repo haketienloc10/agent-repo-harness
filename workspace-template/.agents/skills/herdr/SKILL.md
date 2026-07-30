@@ -122,7 +122,7 @@ herdr agent start reviewer --kind codex --pane <returned-pane-id> -- <agent-args
 Submit work through the agent surface:
 
 ```bash
-herdr agent prompt reviewer "Review the current diff and report only actionable findings." --wait --timeout 120000
+herdr agent prompt reviewer "Review the current diff and report only actionable findings." --wait
 ```
 
 `agent prompt` atomically submits text and encoded Enter while honoring the pane's live bracketed-paste mode. For normal agent work, `--wait` is enough: it waits for the first settled `idle`, `done`, or `blocked` state. Do not repeat those defaults with `--until`.
@@ -132,7 +132,7 @@ A prompt sent from a non-working state must produce an observed lifecycle change
 Use `--until` only for a state-specific workflow, such as waiting for an already-running agent to request input:
 
 ```bash
-herdr agent wait reviewer --until blocked --timeout 120000
+herdr agent wait reviewer --until blocked
 ```
 
 Without `--until`, standalone `agent wait` uses the same settled-state defaults as `agent prompt --wait`.
