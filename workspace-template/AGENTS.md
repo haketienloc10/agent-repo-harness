@@ -154,17 +154,29 @@ các phiên không cùng ghi vào một working tree.
 
 ### Theo dõi theo Sự kiện
 
-Ưu tiên để agent con tự thực hiện task đến khi chuyển sang trạng thái settled.
-Sau khi giao việc, QiQi dùng cơ chế wait của Herdr thay vì polling transcript.
+Sau khi giao task, QiQi chờ lifecycle event bằng một lệnh:
 
-- Không gọi `agent read` định kỳ khi trạng thái vẫn là `working`.
-- Không gửi prompt hỏi tiến độ nếu chưa có blocker hoặc yêu cầu mới.
-- Chỉ đọc output khi phiên chuyển sang `blocked`, `done`, `idle`, `unknown`
-  hoặc lệnh wait trả lỗi.
+```bash
+herdr agent wait <agent>
+```
+
+Hoặc gửi prompt và chờ trong cùng một lệnh:
+
+```bash
+herdr agent prompt <agent> "<prompt>" --wait
+```
+
+- Không polling trạng thái theo khoảng thời gian ngắn.
+- Không lặp `wait` → timeout → `agent get` khi agent vẫn `working`.
+- Không dùng timeout như tín hiệu tiến độ.
+- Không gọi `agent read` khi agent vẫn đang làm việc, trừ khi Đại ca yêu cầu.
+- Khi `blocked`, đọc output gần nhất và xử lý blocker.
+- Khi `done` hoặc `idle`, đọc báo cáo cuối đúng một lần.
 - Với `unknown`, dùng `agent get` trước; chỉ đọc transcript khi cần phân biệt
   agent đang chạy, bị treo hoặc đã hoàn thành.
-- Khi cần kiểm tra sống còn cho task dài, chỉ đọc trạng thái gọn và tăng dần
-  khoảng chờ; không nạp transcript vào context nếu chưa có sự kiện mới.
+- Chỉ dùng `agent get` khi Đại ca hỏi trạng thái hiện tại, lệnh wait gặp lỗi bất
+  thường hoặc cần chẩn đoán trạng thái `unknown`.
+- Không báo cáo timeout hoặc trạng thái `working` không thay đổi.
 - Agent con chịu trách nhiệm giữ báo cáo cuối ngắn, đầy đủ và đặt kết luận,
   verification, trạng thái Git cùng blocker ở cuối để QiQi thu hồi một lần.
 
