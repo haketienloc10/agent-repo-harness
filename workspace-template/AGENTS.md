@@ -154,24 +154,28 @@ các phiên không cùng ghi vào một working tree.
 
 ### Theo dõi theo Sự kiện
 
-Sau khi giao task, QiQi chờ lifecycle event bằng một lệnh:
-
-```bash
-herdr agent wait <agent>
-```
-
-Hoặc gửi prompt và chờ trong cùng một lệnh:
+Ưu tiên gửi prompt và chờ lifecycle event trong cùng một lệnh:
 
 ```bash
 herdr agent prompt <agent> "<prompt>" --wait
 ```
 
-- Không polling trạng thái theo khoảng thời gian ngắn.
-- Không lặp `wait` → timeout → `agent get` khi agent vẫn `working`.
+Chỉ dùng lệnh chờ riêng khi task đã được giao và chắc chắn không còn lệnh
+`prompt --wait` hoặc `wait` nào đang hoạt động cho agent:
+
+```bash
+herdr agent wait <agent>
+```
+
+- Mỗi agent chỉ có một lệnh chờ lifecycle đang hoạt động. Nếu tool runner chuyển
+  lệnh đó thành background terminal, tiếp tục chờ chính terminal handle đó;
+  không chạy thêm `wait` hoặc `agent get` cho cùng agent.
+- Ưu tiên để agent hoàn thành trọn turn. Khi agent còn `working`, QiQi im lặng,
+  không polling hoặc tự phát cập nhật tiến độ.
 - Không dùng timeout như tín hiệu tiến độ.
 - Không gọi `agent read` khi agent vẫn đang làm việc, trừ khi Đại ca yêu cầu.
-- Khi `blocked`, đọc output gần nhất và xử lý blocker.
-- Khi `done` hoặc `idle`, đọc báo cáo cuối đúng một lần.
+- Khi `blocked`, không gọi lại `wait`; đọc output gần nhất và xử lý blocker.
+- Khi `done` hoặc `idle`, không gọi lại `wait`; đọc báo cáo cuối đúng một lần.
 - Với `unknown`, dùng `agent get` trước; chỉ đọc transcript khi cần phân biệt
   agent đang chạy, bị treo hoặc đã hoàn thành.
 - Chỉ dùng `agent get` khi Đại ca hỏi trạng thái hiện tại, lệnh wait gặp lỗi bất
