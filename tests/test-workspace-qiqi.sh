@@ -25,7 +25,7 @@ for relative_path in \
 done
 
 assert_contains 'giữ vai trò **QiQi**' "$template/AGENTS.md"
-assert_contains 'Không trực tiếp triển khai trong repository con' "$template/AGENTS.md"
+assert_contains 'không trực tiếp triển khai trong repository con' "$template/AGENTS.md"
 assert_contains '`identity.md`' "$template/AGENTS.md"
 assert_contains '`instructions/model-routing.md`' "$template/AGENTS.md"
 assert_contains '`.agents/skills/herdr/SKILL.md`' "$template/AGENTS.md"
@@ -33,6 +33,9 @@ assert_contains 'HERDR_ENV=1' "$template/AGENTS.md"
 assert_contains 'Tôi là **QiQi**' "$template/identity.md"
 assert_contains 'Điểm mạnh' "$template/instructions/model-routing.md"
 assert_contains 'Điểm yếu' "$template/instructions/model-routing.md"
+assert_contains 'Agent kind' "$template/instructions/model-routing.md"
+assert_contains 'Native arguments' "$template/instructions/model-routing.md"
+assert_contains '--kind <agent-kind>' "$template/AGENTS.md"
 assert_contains 'name: herdr' "$template/.agents/skills/herdr/SKILL.md"
 assert_contains 'Apache License' "$template/.agents/skills/herdr/LICENSE.txt"
 assert_contains 'a979916568b0225123711b1aa401d67102e3cf95' \
@@ -81,7 +84,7 @@ assert_contains 'Created: instructions/model-routing.md' "$TEMP_ROOT/workspace.l
 assert_contains 'Created: .agents/skills/herdr/SKILL.md' "$TEMP_ROOT/workspace.log"
 assert_contains 'Local modifications: không có' \
   "$workspace_target/.agents/skills/herdr/SOURCE.md"
-assert_contains 'Không trực tiếp triển khai trong repository con' \
+assert_contains 'không trực tiếp triển khai trong repository con' \
   "$workspace_target/AGENTS.md"
 assert_contains 'Không bắt đầu task sản phẩm trước khi hoàn tất các bước trên.' \
   "$TEMP_ROOT/workspace.log"

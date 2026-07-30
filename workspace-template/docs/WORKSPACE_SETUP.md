@@ -2,8 +2,8 @@
 
 Tài liệu này là quy trình bắt buộc khi khởi tạo `workspace-template` cho một
 hệ thống thực tế. Mục tiêu là tạo một workspace đủ thông tin để QiQi xác định
-đúng repository, contract, model và cách khởi động phiên Codex mà không suy
-đoán.
+đúng repository, contract, agent, model và cách khởi động phiên coding agent mà
+không suy đoán.
 
 Không bắt đầu task sản phẩm trước khi hoàn tất quy trình này.
 
@@ -16,8 +16,8 @@ Sau khi hoàn thành:
 - `SYSTEM_MAP.md` mô tả vai trò, dependency, contract, ownership và cách chạy
   integration có bằng chứng;
 - `identity.md` xác định rõ QiQi là agent điều phối, không phải coding agent;
-- `instructions/model-routing.md` ghi đúng inventory model đang khả dụng cùng
-  điểm mạnh, điểm yếu và trường hợp sử dụng;
+- `instructions/model-routing.md` ghi đúng inventory agent và model đang khả
+  dụng cùng điểm mạnh, điểm yếu và trường hợp sử dụng;
 - Herdr skill tồn tại tại `.agents/skills/herdr/` cùng license và provenance;
 - Codex CLI và Herdr được xác nhận có mặt hoặc blocker được báo rõ;
 - mọi placeholder dạng ngoặc nhọn kép trong artifact workspace đã được thay;
@@ -125,23 +125,28 @@ hoặc đường dẫn giả để thay placeholder.
 
 ## Bước 4: Điền `instructions/model-routing.md`
 
-Model catalog thay đổi theo Codex CLI, provider, account và thời điểm. Không dùng
-một danh sách model lấy từ tài liệu cũ hoặc trí nhớ.
+Agent và model catalog thay đổi theo CLI, provider, account và thời điểm. Không
+dùng một danh sách lấy từ tài liệu cũ hoặc trí nhớ.
 
-1. Xác nhận Codex CLI đang dùng:
+1. Xác nhận từng agent CLI muốn dùng, ví dụ:
 
    ```bash
    command -v codex
    codex --version
    codex --help
+   command -v claude
+   claude --version
+   claude --help
    ```
 
-2. Dùng model picker, cấu hình provider hoặc cơ chế được Codex CLI hiện tại hỗ
+2. Dùng model picker, cấu hình provider hoặc cơ chế được agent CLI hiện tại hỗ
    trợ để lập danh sách model thật sự có thể chọn.
 3. Khi cần, khởi động một phiên thử không chỉnh sửa repository để xác nhận model
    ID hoạt động.
 4. Với mỗi model, ghi:
+   - agent kind đúng theo `herdr agent start --help`;
    - model ID chính xác;
+   - native arguments gồm model và chế độ permission;
    - bằng chứng availability;
    - điểm mạnh;
    - điểm yếu;
@@ -180,10 +185,12 @@ Nếu máy chưa có Herdr, báo blocker và hướng người dùng cài từ n
 Không tự chạy installer tải từ mạng trong giai đoạn takeover nếu chưa được yêu
 cầu.
 
-Herdr có integration trực tiếp cho Codex. Có thể đề xuất:
+Herdr có integration trực tiếp cho nhiều agent. Cài integration cho từng agent
+kind được khai báo trong model routing, ví dụ:
 
 ```bash
 herdr integration install codex
+herdr integration install claude
 ```
 
 Đây là thay đổi user-level; chỉ thực hiện khi người dùng đồng ý.
@@ -213,7 +220,7 @@ Checker xác minh:
 
 Checker không thay thế:
 
-- kiểm tra Herdr/Codex runtime trên máy;
+- kiểm tra Herdr và runtime của các agent đã khai báo trên máy;
 - test hoặc integration test của từng repository;
 - verification mà agent con phải chạy theo `AGENTS.md` riêng.
 
@@ -239,12 +246,12 @@ Chỉ khi checker pass và runtime blocker đã được phân loại, báo cáo
 
 - danh sách repository cùng branch/revision và working tree có sẵn;
 - relation/contract quan trọng;
-- inventory model và profile routing;
-- phiên bản Codex/Herdr;
-- integration Herdr-Codex đã cài hay chưa;
+- inventory agent, model và profile routing;
+- phiên bản Herdr và các agent CLI;
+- integration Herdr-agent cần thiết đã cài hay chưa;
 - khu vực chưa xác minh;
 - hành động tiếp theo nếu còn bị chặn.
 
 Không tuyên bố workspace sẵn sàng cho QiQi delegation nếu còn placeholder,
-repository registry không tồn tại, model chưa được xác nhận hoặc Herdr/Codex
-runtime chưa khả dụng.
+repository registry không tồn tại, model chưa được xác nhận hoặc Herdr/agent
+runtime cần thiết chưa khả dụng.

@@ -25,8 +25,8 @@ Tôi chịu trách nhiệm:
 - thảo luận và làm rõ kết quả Đại ca muốn đạt;
 - xác định repository liên quan dựa trên `repos.yaml` và `SYSTEM_MAP.md`;
 - nhận diện dependency để quyết định chạy tuần tự hay song song;
-- chọn model theo `instructions/model-routing.md`;
-- tạo và quản lý phiên Codex thông qua Herdr;
+- chọn agent kind, model và native arguments theo `instructions/model-routing.md`;
+- tạo và quản lý phiên coding agent thông qua Herdr;
 - chuyển context cần thiết giữa các phiên phụ thuộc nhau;
 - phát hiện phiên bị block và đưa đúng câu hỏi về cho Đại ca;
 - thu báo cáo cuối, yêu cầu bổ sung nếu thiếu và đóng phiên đã hoàn thành;
@@ -61,7 +61,8 @@ workflow chi tiết của repository vào prompt; agent con phải đọc và tu
 
 - `repos.yaml` cho biết repository local và đường dẫn.
 - `SYSTEM_MAP.md` cho biết quan hệ liên repository.
-- `instructions/model-routing.md` cho biết model đang khả dụng và cách chọn.
+- `instructions/model-routing.md` cho biết agent, model và native arguments đang
+  khả dụng cùng cách chọn.
 - Herdr cho biết trạng thái phiên đang chạy.
 - Artifact và Git của repository con cho biết trạng thái kỹ thuật của task.
 

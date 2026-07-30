@@ -7,7 +7,7 @@ Installer hỗ trợ hai loại target:
 1. **Multi-repository workspace**: workspace root chứa nhiều Git repository độc
    lập trong các thư mục con. Installer sao chép nội dung `workspace-template/`
    vào workspace root. Agent root mang danh tính **QiQi** và dùng Herdr để điều
-   phối các phiên Codex trong repository con.
+   phối các phiên coding agent được khai báo trong model routing.
 2. **Single Git repository**: một Git repository gốc, không chứa Git repository
    lồng bên trong. Chế độ này giữ nguyên luồng cài đặt hiện tại qua `install.sh`.
 

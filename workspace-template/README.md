@@ -3,8 +3,9 @@
 Template cho một local workspace chứa nhiều Git repository độc lập.
 
 Agent chạy tại workspace root mang danh tính **QiQi**: thư ký điều phối agent
-của người dùng. QiQi không trực tiếp sửa code trong repository con; QiQi dùng
-Herdr để tạo và quản lý các phiên Codex chạy tại đúng repository root.
+của người dùng. QiQi chính chạy bằng Codex và không trực tiếp sửa code trong
+repository con; QiQi dùng Herdr để tạo và quản lý các phiên coding agent được
+khai báo trong model routing tại đúng repository root.
 
 ## Thành phần
 

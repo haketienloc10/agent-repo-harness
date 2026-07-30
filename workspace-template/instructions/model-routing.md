@@ -1,14 +1,18 @@
 # Model Routing cho QiQi
 
-Tệp này là registry vận hành cho các model mà QiQi có thể dùng khi khởi động
-phiên Codex trong repository con.
+Tệp này là registry vận hành cho các agent kind và model mà QiQi có thể dùng khi
+khởi động phiên coding agent trong repository con. QiQi chính mặc định chạy bằng
+Codex; agent con có thể dùng kind khác khi profile khai báo rõ.
 
 Không dùng kiến thức nhớ từ phiên trước để suy đoán model đang khả dụng. Model
-picker, cấu hình provider và Codex CLI đang cài trên máy là nguồn sự thật.
+picker, cấu hình provider và CLI của agent đang cài trên máy là nguồn sự thật.
 
 ## Nguyên tắc Cập nhật
 
-- Ghi **đúng model ID** cần truyền cho Codex, không dùng tên marketing mơ hồ.
+- Ghi **đúng agent kind** Herdr hỗ trợ và **đúng model ID** cần truyền cho agent,
+  không dùng tên marketing mơ hồ.
+- Ghi native arguments hoàn chỉnh cần đặt sau `--` của `herdr agent start`, gồm
+  model và chế độ permission phù hợp với agent đó.
 - Chỉ ghi model đã xác nhận có thể khởi động trong môi trường hiện tại.
 - Ghi bằng chứng availability: model picker, config provider hoặc một lần start
   thành công.
@@ -22,23 +26,23 @@ picker, cấu hình provider và Codex CLI đang cài trên máy là nguồn s�
 Trong quá trình setup, thay toàn bộ placeholder bên dưới bằng dữ liệu thực tế.
 Có thể thêm hoặc xóa hàng để khớp đúng số model đang có.
 
-| Model ID chính xác | Bằng chứng khả dụng | Điểm mạnh | Điểm yếu | Nên dùng cho | Không nên dùng cho | Reasoning effort mặc định | Giới hạn song song |
-|---|---|---|---|---|---|---|---|
-| `{{MODEL_1_ID}}` | `{{MODEL_1_EVIDENCE}}` | `{{MODEL_1_STRENGTHS}}` | `{{MODEL_1_WEAKNESSES}}` | `{{MODEL_1_USE_CASES}}` | `{{MODEL_1_AVOID}}` | `{{MODEL_1_EFFORT}}` | `{{MODEL_1_CONCURRENCY}}` |
-| `{{MODEL_2_ID}}` | `{{MODEL_2_EVIDENCE}}` | `{{MODEL_2_STRENGTHS}}` | `{{MODEL_2_WEAKNESSES}}` | `{{MODEL_2_USE_CASES}}` | `{{MODEL_2_AVOID}}` | `{{MODEL_2_EFFORT}}` | `{{MODEL_2_CONCURRENCY}}` |
-| `{{MODEL_3_ID}}` | `{{MODEL_3_EVIDENCE}}` | `{{MODEL_3_STRENGTHS}}` | `{{MODEL_3_WEAKNESSES}}` | `{{MODEL_3_USE_CASES}}` | `{{MODEL_3_AVOID}}` | `{{MODEL_3_EFFORT}}` | `{{MODEL_3_CONCURRENCY}}` |
+| Agent kind | Model ID chính xác | Native arguments | Bằng chứng khả dụng | Điểm mạnh | Điểm yếu | Nên dùng cho | Không nên dùng cho | Reasoning effort mặc định | Giới hạn song song |
+|---|---|---|---|---|---|---|---|---|---|
+| `{{AGENT_1_KIND}}` | `{{MODEL_1_ID}}` | `{{AGENT_1_ARGUMENTS}}` | `{{MODEL_1_EVIDENCE}}` | `{{MODEL_1_STRENGTHS}}` | `{{MODEL_1_WEAKNESSES}}` | `{{MODEL_1_USE_CASES}}` | `{{MODEL_1_AVOID}}` | `{{MODEL_1_EFFORT}}` | `{{MODEL_1_CONCURRENCY}}` |
+| `{{AGENT_2_KIND}}` | `{{MODEL_2_ID}}` | `{{AGENT_2_ARGUMENTS}}` | `{{MODEL_2_EVIDENCE}}` | `{{MODEL_2_STRENGTHS}}` | `{{MODEL_2_WEAKNESSES}}` | `{{MODEL_2_USE_CASES}}` | `{{MODEL_2_AVOID}}` | `{{MODEL_2_EFFORT}}` | `{{MODEL_2_CONCURRENCY}}` |
+| `{{AGENT_3_KIND}}` | `{{MODEL_3_ID}}` | `{{AGENT_3_ARGUMENTS}}` | `{{MODEL_3_EVIDENCE}}` | `{{MODEL_3_STRENGTHS}}` | `{{MODEL_3_WEAKNESSES}}` | `{{MODEL_3_USE_CASES}}` | `{{MODEL_3_AVOID}}` | `{{MODEL_3_EFFORT}}` | `{{MODEL_3_CONCURRENCY}}` |
 
 ## Profile Định tuyến
 
 Một model có thể phục vụ nhiều profile. Không bắt buộc mỗi profile dùng một
 model khác nhau.
 
-| Profile | Model ID | Dùng khi | Chuyển profile khi |
-|---|---|---|---|
-| `fast` | `{{FAST_MODEL_ID}}` | Task cơ học, phạm vi nhỏ, yêu cầu rõ, ít file, verification trực tiếp. | Scope mở rộng, cần suy luận liên module hoặc model lặp lại sai cùng một nguyên nhân. |
-| `balanced` | `{{BALANCED_MODEL_ID}}` | Implementation thông thường trong một repository, điều tra bug vừa phải, viết test và tài liệu kỹ thuật. | Task có breaking contract, migration, kiến trúc phức tạp hoặc nhiều lần sửa không đạt verification. |
-| `deep` | `{{DEEP_MODEL_ID}}` | Phân tích kiến trúc, task nhiều subsystem, migration, bug khó tái hiện, yêu cầu có nhiều trade-off. | Không tự hạ profile trong cùng task nếu chưa có bằng chứng task đã trở nên cơ học. |
-| `verifier` | `{{VERIFIER_MODEL_ID}}` | Review độc lập, đối chiếu spec, kiểm tra rủi ro và chất lượng evidence khi repository workflow yêu cầu. | Không dùng cùng context triển khai nếu mục tiêu là đánh giá độc lập. |
+| Profile | Agent kind | Model ID | Dùng khi | Chuyển profile khi |
+|---|---|---|---|---|
+| `fast` | `{{FAST_AGENT_KIND}}` | `{{FAST_MODEL_ID}}` | Task cơ học, phạm vi nhỏ, yêu cầu rõ, ít file, verification trực tiếp. | Scope mở rộng, cần suy luận liên module hoặc model lặp lại sai cùng một nguyên nhân. |
+| `balanced` | `{{BALANCED_AGENT_KIND}}` | `{{BALANCED_MODEL_ID}}` | Implementation thông thường trong một repository, điều tra bug vừa phải, viết test và tài liệu kỹ thuật. | Task có breaking contract, migration, kiến trúc phức tạp hoặc nhiều lần sửa không đạt verification. |
+| `deep` | `{{DEEP_AGENT_KIND}}` | `{{DEEP_MODEL_ID}}` | Phân tích kiến trúc, task nhiều subsystem, migration, bug khó tái hiện, yêu cầu có nhiều trade-off. | Không tự hạ profile trong cùng task nếu chưa có bằng chứng task đã trở nên cơ học. |
+| `verifier` | `{{VERIFIER_AGENT_KIND}}` | `{{VERIFIER_MODEL_ID}}` | Review độc lập, đối chiếu spec, kiểm tra rủi ro và chất lượng evidence khi repository workflow yêu cầu. | Không dùng cùng context triển khai nếu mục tiêu là đánh giá độc lập. |
 
 ## Quy tắc Chọn Model
 
@@ -47,7 +51,7 @@ model khác nhau.
 2. Xác định rủi ro: phạm vi file, khả năng breaking change, dữ liệu, bảo mật,
    rollback và dependency bên ngoài.
 3. Chọn profile thấp nhất vẫn đủ tin cậy cho task.
-4. Lấy model ID chính xác từ bảng inventory.
+4. Lấy agent kind, model ID và native arguments chính xác từ bảng inventory.
 5. Kiểm tra giới hạn song song trước khi tạo thêm phiên.
 6. Ghi model/profile đã chọn trong báo cáo khởi tạo phiên khi lựa chọn đó ảnh
    hưởng chi phí, độ trễ hoặc chất lượng.
@@ -89,7 +93,9 @@ Khi tạo phiên, QiQi phải biết:
 - repository;
 - task;
 - profile;
+- agent kind;
 - model ID;
+- native arguments;
 - reasoning effort;
 - dependency với phiên khác;
 - lý do lựa chọn nếu không dùng profile mặc định.

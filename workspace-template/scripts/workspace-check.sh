@@ -89,6 +89,10 @@ if [[ -f "$workspace_root/instructions/model-routing.md" ]]; then
     fail 'instructions/model-routing.md: missing model weaknesses'
   rg -q 'Model ID' "$workspace_root/instructions/model-routing.md" || \
     fail 'instructions/model-routing.md: missing exact model ID inventory'
+  rg -q 'Agent kind' "$workspace_root/instructions/model-routing.md" || \
+    fail 'instructions/model-routing.md: missing Herdr agent kind inventory'
+  rg -q 'Native arguments' "$workspace_root/instructions/model-routing.md" || \
+    fail 'instructions/model-routing.md: missing native agent arguments'
   rg -q 'fast' "$workspace_root/instructions/model-routing.md" || \
     fail 'instructions/model-routing.md: missing fast profile'
   rg -q 'balanced' "$workspace_root/instructions/model-routing.md" || \
