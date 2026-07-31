@@ -19,6 +19,7 @@ migration hoặc cấu hình runtime:
 | Artifact                      | Khi nào đọc                                                                                                 |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `docs/tasks/active/<task>.md` | Khi task có active plan liên quan.                                                                          |
+| `docs/domain/`                | Khi task cần hiểu hoặc thay đổi thuật ngữ nghiệp vụ, entity lifecycle, state semantics hoặc invariant dùng chung. |
 | `docs/specs/`                 | Khi thay đổi hành vi người dùng, API behavior, user flow hoặc acceptance criteria.                          |
 | `docs/decisions/`             | Khi thay đổi boundary, dependency direction, shared abstraction hoặc quyết định kiến trúc đã ghi nhận.      |
 | `docs/UI.md`                  | Khi sửa UI state, interaction, responsive behavior, accessibility hoặc design-system usage.                 |
@@ -89,9 +90,10 @@ active
 ```
 
 Trước khi archive, chuyển tri thức lâu bền sang source of truth phù hợp như
-`docs/specs/`, `docs/decisions/`, `ARCHITECTURE.md`, `docs/VERIFY.md`,
-`docs/SECURITY.md` hoặc `docs/KNOWN_DEBT.md`. Final summary phải ghi kết quả,
-verification evidence và durable knowledge đã được chắt lọc ở đâu.
+`docs/domain/`, `docs/specs/`, `docs/decisions/`, `ARCHITECTURE.md`,
+`docs/VERIFY.md`, `docs/SECURITY.md` hoặc `docs/KNOWN_DEBT.md`. Final summary
+phải ghi kết quả, verification evidence và durable knowledge đã được chắt lọc
+ở đâu.
 
 Không xóa completed plan. Completed plan không thay thế spec, ADR,
 `ARCHITECTURE.md` hoặc `docs/VERIFY.md`, và fresh install không tạo
@@ -133,6 +135,8 @@ không bắt buộc tìm root cause hoặc sửa trong task hiện tại. Không
 - Không đổi regression mới thành legacy issue hoặc debt để hoàn thành task.
 - Khi hành vi hoặc boundary thay đổi, cập nhật nguồn sự thật chuyên biệt trong
   cùng thay đổi.
+- Khi phát hiện domain knowledge dùng chung và khó suy ra ổn định từ source hoặc
+  test, cập nhật `docs/domain/` phù hợp; không tạo tài liệu để sao chép code.
 - Khi một rule cần được thực thi lặp lại, ưu tiên test, checker hoặc linter.
 - Không ghi secret hoặc dữ liệu nhạy cảm vào artifact.
 
