@@ -10,10 +10,9 @@ Với task chỉ đọc, giải thích hoặc báo cáo, chỉ mở tài liệu 
 Trước code task không tầm thường, bao gồm thay đổi code, test, build script,
 migration hoặc cấu hình runtime:
 
-1. Xác nhận repository root.
-2. Đọc `ARCHITECTURE.md` để hiểu hệ thống và dependency hiện có.
-3. Đọc `docs/VERIFY.md` để biết command bootstrap, test và guardrail chuẩn.
-4. Dùng bảng định tuyến bên dưới để chỉ mở artifact liên quan.
+1. Đọc `ARCHITECTURE.md` để hiểu hệ thống và dependency hiện có.
+2. Đọc `docs/VERIFY.md` để biết command bootstrap, test và guardrail chuẩn.
+3. Dùng bảng định tuyến bên dưới để chỉ mở artifact liên quan.
 
 ## Định tuyến theo concern
 
