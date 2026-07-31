@@ -49,9 +49,11 @@ Review mọi conflict từ installer trước khi tiếp tục. Không format, m
 update dependency, generate code, commit, reset hoặc cleanup trong lúc thu thập
 baseline.
 
-Đọc README, manifest, lockfile, CI, build/deploy configuration, source
-entrypoint, test configuration, migration và external adapter liên quan. Chỉ ghi
-điều có bằng chứng từ source, config, CI, tài liệu hoặc command thực tế.
+Đọc README nếu tồn tại, cùng manifest, lockfile, CI, build/deploy configuration,
+source entrypoint, test configuration, migration và external adapter liên quan.
+README là artifact hiện hữu của repository, không thuộc harness; không tạo hoặc
+sửa README trong takeover. Chỉ ghi điều có bằng chứng từ source, config, CI, tài
+liệu hoặc command thực tế.
 
 ### 2. Cấu hình core artifact
 
@@ -73,6 +75,7 @@ vắng mặt.
 
 | Artifact | Chỉ tạo khi | Nội dung tối thiểu |
 |---|---|---|
+| `docs/domain/<area>.md` | Có thuật ngữ, entity lifecycle, state semantics hoặc invariant nghiệp vụ dùng chung và khó suy ra ổn định từ source/test | khái niệm, ý nghĩa, quan hệ, invariant, evidence |
 | `docs/specs/<area>.md` | Có behavior/contract cần làm nguồn sự thật | scope, behavior, acceptance criteria |
 | `docs/decisions/<NNNN-title>.md` | Có quyết định kiến trúc lâu dài hoặc trade-off cần lưu | context, decision, consequences, status |
 | `docs/UI.md` | Repo có UI | surface, state, interaction, accessibility, responsive rule |
@@ -82,6 +85,10 @@ vắng mặt.
 | `docs/generated/<artifact>` | Có generator và consumer thật | generator command, owner, refresh rule; nội dung do generator tạo |
 | `docs/references/<source>` | Task cần giữ nguồn ngoài cục bộ | source URL, version hoặc retrieval date, refresh trigger |
 | `docs/tasks/active/<task>.md` | Task thỏa plan trigger trong `AGENTS.md` | các mục trong mẫu plan của `AGENTS.md`; decision và blocker khi phát sinh |
+
+`docs/domain/` không phải nơi lưu investigation log hoặc bản sao cấu trúc code.
+Chỉ tạo hoặc cập nhật khi kiến thức nghiệp vụ áp dụng cho nhiều behavior, nhiều
+vị trí source hoặc nhiều task sau.
 
 Không tạo optional artifact chỉ vì checker hoặc template từng biết tên file đó.
 Optional artifact không được thay thế source of truth chuyên biệt khác.
