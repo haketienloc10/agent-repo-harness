@@ -119,8 +119,10 @@ Prompt không sao chép workflow chi tiết của repository con. Agent con ph�
 
 Tiếp tục phiên đang còn khi cần hỏi thêm, xử lý blocker hoặc sửa verification
 của chính task đó. Tạo phiên mới khi đổi repository, đổi mục tiêu hoặc kết quả
-cũ đã được chắt lọc đủ; prompt mới phải tự chứa context cần thiết, không dựa vào
-việc agent biết lịch sử trao đổi của QiQi.
+cũ đã được chắt lọc đủ. Với task phụ thuộc kết quả trước, prompt mới phải tự chứa
+bối cảnh liên quan, kết quả đã xác nhận, quyết định đã chốt và phần cần làm tiếp;
+không chỉ nêu nhiệm vụ mới, dựa vào lịch sử trao đổi của QiQi hoặc yêu cầu agent
+điều tra lại nội dung đã hoàn tất khi không có bằng chứng mới.
 
 ## Song song và Thứ tự
 
