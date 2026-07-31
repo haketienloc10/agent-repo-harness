@@ -55,7 +55,28 @@ Task nhỏ không có trigger thì không tạo plan. Một code task không t�
 plan chỉ vì có sửa file.
 
 Khi dùng plan, cập nhật nó khi scope, decision, blocker, progress hoặc
-verification thay đổi; không ghi log từng tool call.
+verification thay đổi. Không ghi log từng tool call.
+
+Mẫu tối thiểu:
+
+```md
+# <Tên task>
+
+## Goal
+
+## Scope
+
+## Current state
+
+## Next action
+
+## Verification
+
+## Durable knowledge to extract
+```
+
+Thêm mục như `Decisions` hoặc `Blockers` khi nội dung đó cần được theo dõi
+riêng. Không tạo mục trống hoặc ghi `None` chỉ để hoàn thiện mẫu.
 
 Lifecycle:
 
@@ -63,7 +84,7 @@ Lifecycle:
 active
 → verification hoàn tất
 → chắt lọc durable knowledge
-→ final summary
+→ final outcome
 → dùng `mv` chuyển sang docs/tasks/completed/
 → giữ lâu dài
 ```

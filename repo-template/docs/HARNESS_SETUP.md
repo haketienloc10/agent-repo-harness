@@ -81,7 +81,7 @@ vắng mặt.
 | `docs/KNOWN_DEBT.md` | Có khiếm khuyết được chủ động hoãn | owner, risk, reason, trigger hoặc review date |
 | `docs/generated/<artifact>` | Có generator và consumer thật | generator command, owner, refresh rule; nội dung do generator tạo |
 | `docs/references/<source>` | Task cần giữ nguồn ngoài cục bộ | source URL, version hoặc retrieval date, refresh trigger |
-| `docs/tasks/active/<task>.md` | Task thỏa plan trigger trong `AGENTS.md` | goal, scope, decisions, blockers, progress, verification |
+| `docs/tasks/active/<task>.md` | Task thỏa plan trigger trong `AGENTS.md` | các mục trong mẫu plan của `AGENTS.md`; decision và blocker khi phát sinh |
 
 Không tạo optional artifact chỉ vì checker hoặc template từng biết tên file đó.
 Optional artifact không được thay thế source of truth chuyên biệt khác.
