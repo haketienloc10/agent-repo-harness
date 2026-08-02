@@ -83,21 +83,39 @@ Lifecycle:
 ```text
 active
 → verification hoàn tất
-→ chắt lọc durable knowledge
 → final outcome
 → dùng `mv` chuyển sang docs/tasks/completed/
 → giữ lâu dài
 ```
 
-Trước khi archive, chuyển tri thức lâu bền sang source of truth phù hợp như
-`docs/domain/`, `docs/specs/`, `docs/decisions/`, `ARCHITECTURE.md`,
-`docs/VERIFY.md`, `docs/SECURITY.md` hoặc `docs/KNOWN_DEBT.md`. Final summary
-phải ghi kết quả, verification evidence và durable knowledge đã được chắt lọc
-ở đâu.
-
 Không xóa completed plan. Completed plan không thay thế spec, ADR,
 `ARCHITECTURE.md` hoặc `docs/VERIFY.md`, và fresh install không tạo
 `docs/tasks/completed/` rỗng.
+
+## Ghi nhận tri thức
+
+Trong mọi task, kể cả task chỉ đọc hoặc không có execution plan, đánh giá liệu
+task đã phát hiện, xác nhận hoặc tạo ra tri thức lâu bền chưa được thể hiện đầy
+đủ trong source of truth hay không.
+
+Nếu có, cập nhật artifact chuyên biệt phù hợp trong cùng thay đổi:
+
+- thuật ngữ nghiệp vụ, entity lifecycle, state semantics hoặc invariant dùng
+  chung → `docs/domain/`;
+- hành vi hoặc contract cần được bảo toàn → `docs/specs/`;
+- module, ownership, dependency, data flow hoặc boundary hiện tại
+  → `ARCHITECTURE.md`;
+- quyết định và trade-off lâu bền có bằng chứng → `docs/decisions/`;
+- command, verification path hoặc side effect ổn định → `docs/VERIFY.md`;
+- security boundary → `docs/SECURITY.md`;
+- legacy failure hoặc debt thực sự → artifact tương ứng.
+
+Không tạo tài liệu để sao chép nội dung đã rõ từ source, test hoặc Git. Phát
+hiện chưa đủ bằng chứng không được ghi vào source of truth như sự thật.
+
+Nếu task có plan, dùng `Durable knowledge to extract` để theo dõi việc chắt lọc
+qua nhiều phiên; plan không thay thế artifact chuyên biệt. Final summary phải
+nêu artifact đã cập nhật hoặc ghi rõ không có durable knowledge cần ghi nhận.
 
 ## Ghi nhận friction
 
@@ -133,15 +151,11 @@ không bắt buộc tìm root cause hoặc sửa trong task hiện tại. Không
 - Failure có tại baseline là legacy issue; failure do thay đổi hiện tại tạo ra
   là regression; phát hiện chưa đủ bằng chứng vẫn là observation chưa phân loại.
 - Không đổi regression mới thành legacy issue hoặc debt để hoàn thành task.
-- Khi hành vi hoặc boundary thay đổi, cập nhật nguồn sự thật chuyên biệt trong
-  cùng thay đổi.
-- Khi phát hiện domain knowledge dùng chung và khó suy ra ổn định từ source hoặc
-  test, cập nhật `docs/domain/` phù hợp; không tạo tài liệu để sao chép code.
 - Khi một rule cần được thực thi lặp lại, ưu tiên test, checker hoặc linter.
 - Không ghi secret hoặc dữ liệu nhạy cảm vào artifact.
 
 ## Hoàn thành
 
-Một thay đổi chỉ hoàn thành khi hành vi mục tiêu đã được triển khai, verification
-liên quan đã chạy, không có regression mới, và tài liệu nguồn sự thật bị ảnh
-hưởng đã được cập nhật.
+Một task chỉ hoàn thành khi kết quả mục tiêu đã đạt, verification liên quan đã
+chạy, không có regression mới, durable knowledge review đã hoàn tất, và source
+of truth đã được cập nhật khi có tri thức lâu bền cần ghi nhận.
