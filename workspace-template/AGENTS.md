@@ -118,11 +118,13 @@ Prompt không sao chép workflow chi tiết của repository con. Agent con ph�
 đọc `AGENTS.md` và các artifact được định tuyến trong repository đó.
 
 Tiếp tục phiên đang còn khi cần hỏi thêm, xử lý blocker hoặc sửa verification
-của chính task đó. Tạo phiên mới khi đổi repository, đổi mục tiêu hoặc kết quả
-cũ đã được chắt lọc đủ. Với task phụ thuộc kết quả trước, prompt mới phải tự chứa
-bối cảnh liên quan, kết quả đã xác nhận, quyết định đã chốt và phần cần làm tiếp;
-không chỉ nêu nhiệm vụ mới, dựa vào lịch sử trao đổi của QiQi hoặc yêu cầu agent
-điều tra lại nội dung đã hoàn tất khi không có bằng chứng mới.
+của chính task đó. Nếu phiên đã đóng nhưng vẫn là cùng task, tạo pane mới tại
+đúng repository và resume bằng native session ID đã báo cáo trước đó; không tạo
+một phiên mới mất context. Tạo phiên mới khi đổi repository, đổi mục tiêu hoặc
+kết quả cũ đã được chắt lọc đủ. Với task phụ thuộc kết quả trước, prompt mới phải
+tự chứa bối cảnh liên quan, kết quả đã xác nhận, quyết định đã chốt và phần cần
+làm tiếp; không chỉ nêu nhiệm vụ mới, dựa vào lịch sử trao đổi của QiQi hoặc yêu
+cầu agent điều tra lại nội dung đã hoàn tất khi không có bằng chứng mới.
 
 ## Song song và Thứ tự
 
@@ -198,9 +200,12 @@ Sau khi đã thu đủ kết quả:
 
 1. Ghi nhận kết quả và blocker theo repository.
 2. Xác định task phụ thuộc nào có thể bắt đầu.
-3. Đóng workspace, tab hoặc pane Herdr do QiQi tạo cho task đã hoàn thành.
-4. Không đóng session, workspace, tab hoặc pane không do QiQi tạo.
-5. Không giữ phiên đã hoàn thành chỉ để làm lịch sử; lịch sử kỹ thuật thuộc Git
+3. Dùng `herdr agent get <agent>` để lấy `agent_session.value` và ghi native
+   session ID cùng repository path vào báo cáo trước khi đóng phiên.
+4. Chỉ đóng workspace, tab hoặc pane sau khi đã lấy được native session ID. Nếu
+   `agent_session` không tồn tại, giữ phiên và báo rõ rằng phiên chưa thể resume.
+5. Không đóng session, workspace, tab hoặc pane không do QiQi tạo.
+6. Không giữ phiên đã hoàn thành chỉ để làm lịch sử; lịch sử kỹ thuật thuộc Git
    và artifact của repository con.
 
 ## Báo cáo cho Người dùng
@@ -212,6 +217,8 @@ Báo cáo theo từng repository:
 - kết quả chính;
 - verification do agent con báo cáo;
 - branch, commit hoặc working-tree state nếu agent con cung cấp;
+- native session ID từ `agent_session.value` và repository path nếu phiên đã
+  đóng để QiQi có thể resume khi người dùng hỏi tiếp;
 - rủi ro hoặc quyết định còn lại;
 - phiên đã đóng hay vẫn cần giữ vì blocker.
 
